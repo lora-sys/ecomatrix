@@ -35,3 +35,4 @@ apps/agent/dist/
 
 # Sessions / tasks live in repo but skip huge traces
 sessions/*.trace.json
+.ruff_cache/
