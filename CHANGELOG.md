@@ -77,6 +77,15 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.4]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.3...v0.3.4
 
+## [0.3.5] — 2026-07-11 — One-shot demo onboarding
+
+### Added
+- `Makefile` at repo root with `help`, `db-up`, `db-down`, `seed`, `backend`, `frontend`, `agent`, `demo`, `test`, `fmt`, `lint`, `clean`.
+- `scripts/demo.sh` brings up the entire stack in one command: Postgres (via compose), backend (built + seeded + running), frontend (deps + dev server), and the multi-agent scenario in the background. SIGINT-safe; traps and kills children.
+- README quickstart rewritten to lead with `make demo`.
+
+[0.3.5]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.4...v0.3.5
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

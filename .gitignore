@@ -51,3 +51,4 @@ apps/agent/.ruff_cache/
 
 # Backend
 apps/backend/bin/
+.demo-logs/

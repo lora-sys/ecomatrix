@@ -26,22 +26,39 @@ checklists/  Evidence gate, PR-merge
 scripts/     bootstrap / refresh-index / new-session / evidence-pack
 ```
 
-## Quickstart
+## Quickstart — one command
 
 ```bash
-# Postgres (re-uses repotwin-postgres-1 if present, else this compose)
+# Bring up Postgres, build, seed, start backend (8080), frontend (3100),
+# and the multi-agent scenario, all in one shot. Ctrl-C stops everything.
+make demo
+```
+
+Then open http://localhost:3100.
+
+## Quickstart — manual
+
+```bash
+# 1. Postgres
 docker compose up -d db
 
-# Build + seed + run
-cd apps/backend
-make build
+# 2. Backend (terminal 1)
+cd apps/backend && make build
 ECOMATRIX_DB_DSN='postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable' ./bin/seed
 ECOMATRIX_DB_DSN='postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable' ./bin/server
 
-# Smoke
-curl http://localhost:8080/healthz
-curl http://localhost:8080/v1/agents
-make test-race
+# 3. Dashboard (terminal 2)
+cd apps/frontend && npm install && PORT=3100 npx next dev -p 3100
+
+# 4. Agents (terminal 3)
+cd apps/agent && uv venv --python 3.12 .venv && . .venv/bin/activate && uv pip install -e '.[dev]'
+. .venv/bin/activate && python -m ecomatrix.runner --scenario multi --ticks 5 --tick-seconds 0.3
+```
+
+## Tests
+
+```bash
+make test    # backend -race + agent pytest + frontend tsc + playwright
 ```
 
 ## Operating System for AI Agents
