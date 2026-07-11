@@ -96,6 +96,24 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.6]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.5...v0.3.6
 
+## [0.3.7] — 2026-07-11 — Per-agent HMAC authentication
+
+### Security
+- A2A `POST /v1/trades` and `POST /v1/feeds` now require a per-agent HMAC signature: `X-Agent-Id`, `X-Agent-Timestamp`, `X-Agent-Signature` over a `METHOD
+PATH
+TIMESTAMP
+sha256(BODY)` canonical form. 5-minute replay window.
+
+### Added
+- `apps/backend/internal/auth/`: HMAC codec + agent secret store + Fiber middleware.
+- `apps/agent/ecomatrix/a2a.py::_signing_headers` — every POST is signed when a secret is configured for the sender.
+- 8 new Go tests + 4 new Python parity tests.
+
+### Backwards compatible
+- When `ECOMATRIX_AGENT_SECRETS` is unset, the middleware is a no-op. `make demo` continues to work without configuration.
+
+[0.3.7]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.6...v0.3.7
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

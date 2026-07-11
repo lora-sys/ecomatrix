@@ -1,0 +1,18 @@
+# Per-agent HMAC verification (live)
+## Config
+ECOMATRIX_AGENT_SECRETS=agent_miner_01=miner-secret-a,agent_merchant_01=merchant-secret-a
+## 1. Properly signed trade (expect 200 + SETTLED)
+HTTP 200
+{"msg_id":"hmac_live_1783755680","protocol_v":"1.1","receipt":{"tx_id":"tx_f3d99bd90985519bc41388acee9f4acc","from":"agent_miner_01","to":"agent_merchant_03","amount":7,"currency_type":"GOLD","balance_after":{"from":93,"to":207}},"replay":false,"status":"SETTLED","tx_id":"tx_f3d99bd90985519bc41388acee9f4acc"}
+
+## 2. Unsigned trade from configured agent (expect 401)
+HTTP 401
+{"error":"agent not configured for HMAC signing"}
+
+## 3. Trade from unconfigured agent (expect 401)
+HTTP 401
+{"error":"agent not configured for HMAC signing"}
+
+## 4. Tampered body, original signature (expect 401 HMAC_INVALID)
+HTTP 401
+{"code":"HMAC_INVALID","error":"auth: signature mismatch"}

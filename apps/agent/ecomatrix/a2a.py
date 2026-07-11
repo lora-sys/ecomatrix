@@ -15,9 +15,51 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
+import hashlib
+import json
+import hmac
+import os
+import time
+
 import httpx
 
 PROTOCOL_V = "1.1"
+
+HMAC_HEADER_AGENT_ID = "X-Agent-Id"
+HMAC_HEADER_AGENT_TS = "X-Agent-Timestamp"
+HMAC_HEADER_AGENT_SIG = "X-Agent-Signature"
+
+
+def _agent_secret_for(agent_id: str) -> bytes | None:
+    raw = os.environ.get("ECOMATRIX_AGENT_SECRETS", "")
+    if not raw:
+        return None
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if "=" not in pair:
+            continue
+        k, _, v = pair.partition("=")
+        if k.strip() == agent_id:
+            return v.strip().encode("utf-8")
+    return None
+
+
+def _sign(secret: bytes, method: str, path: str, ts: int, body: bytes) -> str:
+    body_hash = hashlib.sha256(body).hexdigest()
+    canonical = "\n".join([method.upper(), path, str(ts), body_hash]).encode("utf-8")
+    return hmac.new(secret, canonical, hashlib.sha256).hexdigest()
+
+
+def _signing_headers(agent_id: str, method: str, path: str, body: bytes) -> dict[str, str]:
+    secret = _agent_secret_for(agent_id)
+    if not secret:
+        return {}
+    ts = int(time.time())
+    return {
+        HMAC_HEADER_AGENT_ID: agent_id,
+        HMAC_HEADER_AGENT_TS: str(ts),
+        HMAC_HEADER_AGENT_SIG: _sign(secret, method, path, ts, body),
+    }
 MAX_CLOCK_SKEW_SECONDS = 300
 
 _MSG_ID_RE = re.compile(r"^[A-Za-z0-9_]{6,64}$")
@@ -235,6 +277,10 @@ class A2AClient:
         self._base_url = base_url.rstrip("/")
         self._client = httpx.Client(base_url=self._base_url, timeout=timeout_seconds)
 
+    def _signed_headers(self, sender: str, method: str, path: str, body: bytes) -> dict[str, str]:
+        """Return HMAC headers if the sender has a configured secret."""
+        return _signing_headers(sender, method, path, body)
+
     def close(self) -> None:
         self._client.close()
 
@@ -276,7 +322,12 @@ class A2AClient:
             action=Action.POST_FEED,
             payload=FeedPayload(content=content, intent_type=intent_type).to_dict(),
         )
-        r = self._client.post("/v1/feeds", json=env.to_dict())
+        body_bytes = json.dumps(env.to_dict()).encode("utf-8") if hasattr(json, "dumps") else \
+            __import__("json").dumps(env.to_dict()).encode("utf-8")
+        headers = self._signed_headers(sender, "POST", "/v1/feeds", body_bytes)
+        r = self._client.post("/v1/feeds", content=body_bytes, headers={
+            "Content-Type": "application/json", **headers,
+        })
         body = r.json()
         if r.status_code >= 400:
             err = body.get("error", {})
@@ -304,7 +355,12 @@ class A2AClient:
                 reasoning=reasoning,
             ).to_dict(),
         )
-        r = self._client.post("/v1/trades", json=env.to_dict())
+        body_bytes = json.dumps(env.to_dict()).encode("utf-8") if hasattr(json, "dumps") else \
+            __import__("json").dumps(env.to_dict()).encode("utf-8")
+        headers = self._signed_headers(sender, "POST", "/v1/trades", body_bytes)
+        r = self._client.post("/v1/trades", content=body_bytes, headers={
+            "Content-Type": "application/json", **headers,
+        })
         body = r.json()
         if r.status_code >= 400:
             err = body.get("error", {})

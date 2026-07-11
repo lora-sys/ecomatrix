@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/ecomatrix/backend/internal/config"
+	"github.com/ecomatrix/backend/internal/auth"
 	"github.com/ecomatrix/backend/internal/observability"
 	"github.com/ecomatrix/backend/internal/repo"
 	"github.com/ecomatrix/backend/internal/service"
@@ -44,6 +45,7 @@ func main() {
 	txs := repo.NewTxRepo(db)
 	feed := repo.NewFeedRepo(db)
 	metrics := service.NewMetricsService(db, agents, txs)
+	secrets := auth.NewAgentSecretStoreFromEnv()
 	trade := service.NewTradeService(db, agents, txs, hub, metrics)
 
 	app := fiber.New(fiber.Config{
@@ -51,9 +53,10 @@ func main() {
 		DisableStartupMessage: true,
 		ErrorHandler:          fiberErrorHandler(log),
 	})
+	corsCfg := httpx.CORSConfigFromConfig()
 	srv := &httpx.Server{
 		App: app, Agents: agents, Txs: txs, Feed: feed, Trade: trade, Metrics: metrics, Hub: hub,
-		Log: log, Admin: cfg.AdminToken, DB: sqlDB,
+		Log: log, Admin: cfg.AdminToken, DB: sqlDB, CORS: corsCfg, AuthStore: secrets,
 	}
 	srv.Register()
 

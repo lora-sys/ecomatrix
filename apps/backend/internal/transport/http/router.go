@@ -15,6 +15,7 @@ import (
 	"github.com/ecomatrix/backend/internal/repo"
 	"github.com/ecomatrix/backend/internal/service"
 	"github.com/ecomatrix/backend/internal/transport/ws"
+	"github.com/ecomatrix/backend/internal/auth"
 	"github.com/ecomatrix/backend/pkg/a2a"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -30,8 +31,9 @@ type Server struct {
 	Hub     *ws.Hub
 	Log     *slog.Logger
 	Admin   string
-	DB      *sql.DB
-	CORS    corsConfig
+	DB        *sql.DB
+	CORS      corsConfig
+	AuthStore *auth.AgentSecretStore
 }
 
 type corsConfig struct {
@@ -42,6 +44,7 @@ type corsConfig struct {
 func (s *Server) Register() {
 	s.App.Use(requestIDMiddleware())
 	s.App.Use(corsMiddleware(s.CORS, s.Log))
+	s.App.Use(auth.RequireAgentSignature(s.AuthStore))
 	s.App.Use(loggingMiddleware(s.Log))
 
 	s.App.Get("/healthz", s.healthz)
@@ -472,4 +475,13 @@ func isValidJobType(j string) bool {
 		return true
 	}
 	return false
+}
+
+// CORSConfigFromConfig returns a corsConfig populated from the process
+// environment. Used by cmd/server/main.go.
+func CORSConfigFromConfig() corsConfig {
+	return corsConfig{
+		AllowedOrigins: loadCORSOrigins(),
+		DevMode:        true,
+	}
 }
