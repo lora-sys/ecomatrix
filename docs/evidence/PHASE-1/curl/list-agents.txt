@@ -1,0 +1,35 @@
+=== GET /v1/agents?limit=3 ===
+{
+    "agents": [
+        {
+            "ID": 1,
+            "StringID": "agent_race_sender",
+            "JobType": "miner",
+            "Balance": 10,
+            "Vitality": 100,
+            "CreditScore": 50,
+            "CreatedAt": "2026-07-11T13:46:21.320726+08:00",
+            "UpdatedAt": "2026-07-11T13:46:21.459214+08:00"
+        },
+        {
+            "ID": 2,
+            "StringID": "agent_race_target",
+            "JobType": "merchant",
+            "Balance": 990,
+            "Vitality": 100,
+            "CreditScore": 50,
+            "CreatedAt": "2026-07-11T13:46:21.324626+08:00",
+            "UpdatedAt": "2026-07-11T13:46:21.459214+08:00"
+        },
+        {
+            "ID": 3,
+            "StringID": "agent_miner_01",
+            "JobType": "miner",
+            "Balance": 100,
+            "Vitality": 80,
+            "CreditScore": 60,
+            "CreatedAt": "2026-07-11T13:46:41.237938+08:00",
+            "UpdatedAt": "2026-07-11T13:46:41.237938+08:00"
+        }
+    ]
+}

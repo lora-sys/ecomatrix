@@ -1,0 +1,3 @@
+=== POST /v1/trades (insufficient funds) ===
+{"error":{"code":"INSUFFICIENT_FUNDS","message":"agent_miner_01 balance 60 \u003c offer.amount 99999","retryable":false},"msg_id":"tx_req_demo02","protocol_v":"1.1","status":"REJECTED"}
+HTTP 422

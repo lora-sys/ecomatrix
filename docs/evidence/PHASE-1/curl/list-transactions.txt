@@ -1,0 +1,44 @@
+=== GET /v1/transactions ===
+{
+    "transactions": [
+        {
+            "ID": 51,
+            "TxID": "tx_fe0746a4e1db323de233a2f84468be98",
+            "MsgID": "tx_req_demo01",
+            "FromID": 3,
+            "ToID": 10,
+            "Amount": 40,
+            "CurrencyType": "GOLD",
+            "Status": "SETTLED",
+            "ErrorCode": "",
+            "Reasoning": "buying supplies",
+            "CreatedAt": "2026-07-11T13:49:00.361904+08:00"
+        },
+        {
+            "ID": 33,
+            "TxID": "tx_e764d19d5306dbf240389568245cbd00",
+            "MsgID": "race_msg_0025",
+            "FromID": 1,
+            "ToID": 2,
+            "Amount": 30,
+            "CurrencyType": "GOLD",
+            "Status": "SETTLED",
+            "ErrorCode": "",
+            "Reasoning": "",
+            "CreatedAt": "2026-07-11T13:46:21.713353+08:00"
+        },
+        {
+            "ID": 32,
+            "TxID": "tx_898a0f7e44277f2dddc610fdd094378d",
+            "MsgID": "race_msg_0011",
+            "FromID": 1,
+            "ToID": 2,
+            "Amount": 30,
+            "CurrencyType": "GOLD",
+            "Status": "SETTLED",
+            "ErrorCode": "",
+            "Reasoning": "",
+            "CreatedAt": "2026-07-11T13:46:21.70518+08:00"
+        }
+    ]
+}

@@ -1,0 +1,3 @@
+=== POST /v1/agents without admin token (expect 401) ===
+{"error":"admin token required"}
+HTTP 401

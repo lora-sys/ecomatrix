@@ -1,0 +1,3 @@
+=== POST /v1/trades (self-trade) ===
+{"error":{"code":"SELF_TRADE","message":"sender and target are the same agent","retryable":false},"msg_id":"tx_req_demo04","protocol_v":"1.1","status":"REJECTED"}
+HTTP 422

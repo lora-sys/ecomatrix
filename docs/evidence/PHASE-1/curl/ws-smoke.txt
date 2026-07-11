@@ -1,0 +1,5 @@
+=== WS handshake complete ===
+=== trade HTTP status: 200 ===
+{"msg_id":"ws_demo_001","protocol_v":"1.1","receipt":{"tx_id":"tx_b4c9a5b7bd3199768ee72a7bdcc83712","from":"agent_miner_02","to":"agent_merchant_01","amount":10,"currency_type":"GOLD","balance_after":{"from":90,"to":210}},"replay":false,"status":"SETTLED","tx_id":"tx_b4c9a5b7bd3199768ee72a7bdcc83712"}
+=== events received: 1 ===
+{"amount":10,"from":"agent_miner_02","to":"agent_merchant_01","tx_id":"tx_b4c9a5b7bd3199768ee72a7bdcc83712","type":"trade.settled"}

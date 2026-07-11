@@ -1,0 +1,3 @@
+=== POST /v1/trades (happy path) ===
+{"msg_id":"tx_req_demo01","protocol_v":"1.1","receipt":{"tx_id":"tx_fe0746a4e1db323de233a2f84468be98","from":"agent_miner_01","to":"agent_merchant_03","amount":40,"currency_type":"GOLD","balance_after":{"from":60,"to":240}},"replay":false,"status":"SETTLED","tx_id":"tx_fe0746a4e1db323de233a2f84468be98"}
+HTTP 200
