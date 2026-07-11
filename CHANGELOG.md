@@ -39,6 +39,23 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.1]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.0...v0.3.1
 
+## [0.3.2] — 2026-07-11 — Long-Term Memory
+
+### Added
+- Migration `0002_agents_long_term_memory`: JSONB column with GIN index on `agents`.
+- `LongTermMemory` domain struct + `AgentRepo.GetLongTermMemory` / `SetLongTermMemory`.
+- Endpoints: `GET / PUT /v1/agents/by-string-id/{sid}/long-term-memory`.
+- Python `PostgresLongTermMemory` (HTTP-backed); `FileLongTermMemory` kept as the offline default.
+- Runner uses Postgres LTM by default; switch with `ECOMATRIX_AGENT_LTM=file`.
+- Dashboard agent detail page renders an LTM card with summary + last 8 facts.
+
+### Verified
+- 50-goroutine concurrency test still green after the column addition.
+- 19 Python tests pass; 21 Go tests pass.
+- Multi-scenario (3 ticks) ends with conservation intact and 3 new `settled tx_…` facts appended to `agent_miner_01`'s LTM.
+
+[0.3.2]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.1...v0.3.2
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

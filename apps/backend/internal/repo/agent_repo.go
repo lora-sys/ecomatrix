@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/ecomatrix/backend/internal/domain"
@@ -117,4 +118,31 @@ func NewAgentInput(stringID, jobType string, balance int64, vitality, credit int
 		Vitality:    vitality,
 		CreditScore: credit,
 	}
+}
+
+// GetLongTermMemory returns the LTM JSONB column for one agent.
+// GORM's raw Scan into []byte misinterprets JSONB; we Scan into a string and
+// then unmarshal.
+func (r *AgentRepo) GetLongTermMemory(ctx context.Context, id int64) (domain.LongTermMemory, error) {
+	var raw string
+	if err := r.db.WithContext(ctx).
+		Raw(`SELECT long_term_memory::text FROM agents WHERE id = ?`, id).
+		Scan(&raw).Error; err != nil {
+		return domain.LongTermMemory{}, err
+	}
+	ltm := domain.LongTermMemory{}
+	if raw != "" {
+		_ = json.Unmarshal([]byte(raw), &ltm)
+	}
+	return ltm, nil
+}
+
+// SetLongTermMemory overwrites the LTM JSONB column for one agent.
+func (r *AgentRepo) SetLongTermMemory(ctx context.Context, id int64, ltm domain.LongTermMemory) error {
+	data, err := json.Marshal(ltm)
+	if err != nil {
+		return err
+	}
+	return r.db.WithContext(ctx).
+		Exec(`UPDATE agents SET long_term_memory = ?, updated_at = now() WHERE id = ?`, data, id).Error
 }

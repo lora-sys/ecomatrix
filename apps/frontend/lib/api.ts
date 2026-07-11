@@ -27,3 +27,17 @@ export async function fetchTransactions(limit = 50): Promise<Transaction[]> {
   const d = await r.json();
   return d.transactions as Transaction[];
 }
+
+export interface LongTermMemory {
+  summary: string;
+  facts: string[];
+}
+
+export async function fetchLongTermMemory(id: string): Promise<LongTermMemory> {
+  const r = await fetch(`${BASE}/v1/agents/by-string-id/${id}/long-term-memory`, {
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error(`ltm: ${r.status}`);
+  const d = await r.json();
+  return d.long_term_memory as LongTermMemory;
+}

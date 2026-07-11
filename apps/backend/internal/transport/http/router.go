@@ -44,6 +44,8 @@ func (s *Server) Register() {
 	v1.Get("/agents", s.listAgents)
 	// Order matters: more specific route first.
 	v1.Get("/agents/by-string-id/:sid", s.getAgentByStringID)
+	v1.Get("/agents/by-string-id/:sid/long-term-memory", s.getAgentLTM)
+	v1.Put("/agents/by-string-id/:sid/long-term-memory", s.putAgentLTM)
 	v1.Get("/agents/:id", s.getAgent)
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
 	v1.Post("/trades", s.postTrade)
@@ -150,6 +152,57 @@ func (s *Server) getAgentByStringID(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(a)
+}
+
+func (s *Server) getAgentLTM(c *fiber.Ctx) error {
+	sid := c.Params("sid")
+	if sid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "sid is required")
+	}
+	a, err := s.Agents.ByStringID(c.Context(), sid)
+	if err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	ltm, err := s.Agents.GetLongTermMemory(c.Context(), a.ID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"string_id": sid, "long_term_memory": ltm})
+}
+
+func (s *Server) putAgentLTM(c *fiber.Ctx) error {
+	sid := c.Params("sid")
+	if sid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "sid is required")
+	}
+	var body struct {
+		Summary string   `json:"summary"`
+		Facts   []string `json:"facts"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid json")
+	}
+	if len(body.Summary) > 500 {
+		return fiber.NewError(fiber.StatusBadRequest, "summary must be <= 500 chars")
+	}
+	if len(body.Facts) > 50 {
+		return fiber.NewError(fiber.StatusBadRequest, "facts must be <= 50 entries")
+	}
+	a, err := s.Agents.ByStringID(c.Context(), sid)
+	if err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	ltm := domain.LongTermMemory{Summary: body.Summary, Facts: body.Facts}
+	if err := s.Agents.SetLongTermMemory(c.Context(), a.ID, ltm); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"string_id": sid, "long_term_memory": ltm})
 }
 
 func (s *Server) getAgent(c *fiber.Ctx) error {

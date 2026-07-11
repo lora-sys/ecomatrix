@@ -1,0 +1,15 @@
+{
+    "long_term_memory": {
+        "summary": "\u4f4e\u4f53\u529b\uff0c\u5df2\u4e0e merchant_03 \u591a\u6b21\u4ea4\u6613",
+        "facts": [
+            "\u4e70\u8fc7\u98df\u7269",
+            "\u5356\u8fc7\u77ff",
+            "\u6c42\u52a9\u4e8e mediator_01",
+            "\u6700\u8fd1 5 tick \u51c0\u652f\u51fa 50 GOLD",
+            "settled tx_a3d2fbf2e000ed7170853bb1fe0a3254",
+            "settled tx_255b67d89cc55792188244d2eb208f0f",
+            "settled tx_84432814a99693aae0003a94babc2aa1"
+        ]
+    },
+    "string_id": "agent_miner_01"
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchAgent, fetchTransactions, fetchAgents } from "../../../lib/api";
+import { fetchAgent, fetchTransactions, fetchAgents, fetchLongTermMemory } from "../../../lib/api";
 import { notFound } from "next/navigation";
 import { GlowingCard } from "../../../components/glowing-card";
 import { TracingBeam } from "../../../components/tracing-beam";
@@ -17,11 +17,12 @@ export default async function AgentDetail({
   } catch {
     notFound();
   }
-  const [txs, allAgents] = await Promise.all([
+  const [txs, allAgents, ltm] = await Promise.all([
     fetchTransactions(100),
     fetchAgents(),
+    fetchLongTermMemory(id).catch(() => ({ summary: "", facts: [] })),
   ]);
-  const idToString = new Map(allAgents.map((a) => [a.ID, a.StringID]));
+  const idToString = new Map(allAgents.map((a: any) => [a.ID, a.StringID]));
   const mine = txs.filter((t: any) => t.FromID === agent.ID || t.ToID === agent.ID).slice(0, 20);
 
   return (
@@ -57,6 +58,24 @@ export default async function AgentDetail({
             </dl>
           </GlowingCard>
           <div className="lg:col-span-2">
+            <GlowingCard label="长期记忆 · LTM" tone="violet">
+              {ltm.summary ? (
+                <p className="mb-2 text-sm text-ink">{ltm.summary}</p>
+              ) : (
+                <p className="mb-2 font-mono text-xs text-ink-dim">
+                  该 Agent 暂无长期记忆
+                </p>
+              )}
+              {ltm.facts.length > 0 ? (
+                <ul className="space-y-1 font-mono text-xs text-ink-muted">
+                  {ltm.facts.slice(-8).reverse().map((f: any, i: number) => (
+                    <li key={i} className="truncate">· {f}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </GlowingCard>
+          </div>
+          <div className="lg:col-span-2 lg:col-start-2 lg:row-start-2">
             <GlowingCard label="近期交易" tone="gold">
               {mine.length === 0 ? (
                 <div className="font-mono text-xs text-ink-dim">

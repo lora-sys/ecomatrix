@@ -23,7 +23,7 @@ from .a2a import A2AClient, Code
 from .graphs import miner, merchant, hacker, mediator
 from .graphs.base import run_one_tick
 from .llm import get_default_llm
-from .memory import LongTermMemory, ShortTermMemory
+from .memory import FileLongTermMemory, LongTermMemory, PostgresLongTermMemory, ShortTermMemory
 
 
 GRAPH_BUILDERS = {
@@ -32,6 +32,10 @@ GRAPH_BUILDERS = {
     "hacker": hacker.build,
     "mediator": mediator.build,
 }
+
+
+def _use_pg_ltm() -> bool:
+    return os.environ.get("ECOMATRIX_AGENT_LTM", "postgres").lower() in ("postgres", "pg", "1", "true")
 
 
 def _logger() -> logging.Logger:
@@ -50,7 +54,7 @@ def run_two_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
                   log: logging.Logger) -> dict[str, Any]:
     """Phase 2 exit scenario: miner ↔ merchant trade each other until tick budget runs out."""
     llm = get_default_llm()
-    ltm = LongTermMemory()
+    ltm = PostgresLongTermMemory(client) if _use_pg_ltm() else FileLongTermMemory()
 
     miner_graph, miner_mem = _spawn(client, llm, "miner", "agent_miner_01", ltm)
     merchant_graph, merchant_mem = _spawn(client, llm, "merchant", "agent_merchant_01", ltm)
@@ -146,7 +150,7 @@ def run_multi_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
     llm = get_default_llm()
-    ltm = LongTermMemory()
+    ltm = PostgresLongTermMemory(client) if _use_pg_ltm() else FileLongTermMemory()
 
     seeded = client.list_agents(limit=200)
     # Map job_type -> [string_id, ...].

@@ -5,6 +5,7 @@ package repo
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -40,28 +41,34 @@ func Open(dsn string) (*gorm.DB, error) {
 
 // AgentModel is the GORM projection of agents.
 type AgentModel struct {
-	ID          int64     `gorm:"primaryKey"`
-	StringID    string    `gorm:"column:string_id;uniqueIndex"`
-	JobType     string    `gorm:"column:job_type"`
-	Balance     int64     `gorm:"column:balance"`
-	Vitality    int       `gorm:"column:vitality"`
-	CreditScore int       `gorm:"column:credit_score"`
-	CreatedAt   time.Time `gorm:"column:created_at"`
-	UpdatedAt   time.Time `gorm:"column:updated_at"`
+	ID             int64     `gorm:"primaryKey"`
+	StringID       string    `gorm:"column:string_id;uniqueIndex"`
+	JobType        string    `gorm:"column:job_type"`
+	Balance        int64     `gorm:"column:balance"`
+	Vitality       int       `gorm:"column:vitality"`
+	CreditScore    int       `gorm:"column:credit_score"`
+	LongTermMemory []byte    `gorm:"column:long_term_memory;type:jsonb;not null;default:'{}'::jsonb"`
+	CreatedAt      time.Time `gorm:"column:created_at"`
+	UpdatedAt      time.Time `gorm:"column:updated_at"`
 }
 
 func (AgentModel) TableName() string { return "agents" }
 
 func toDomainAgent(a AgentModel) domain.Agent {
+	ltm := domain.LongTermMemory{}
+	if len(a.LongTermMemory) > 0 {
+		_ = json.Unmarshal(a.LongTermMemory, &ltm)
+	}
 	return domain.Agent{
-		ID:          a.ID,
-		StringID:    a.StringID,
-		JobType:     domain.JobType(a.JobType),
-		Balance:     a.Balance,
-		Vitality:    a.Vitality,
-		CreditScore: a.CreditScore,
-		CreatedAt:   a.CreatedAt,
-		UpdatedAt:   a.UpdatedAt,
+		ID:             a.ID,
+		StringID:       a.StringID,
+		JobType:        domain.JobType(a.JobType),
+		Balance:        a.Balance,
+		Vitality:       a.Vitality,
+		CreditScore:    a.CreditScore,
+		LongTermMemory: ltm,
+		CreatedAt:      a.CreatedAt,
+		UpdatedAt:      a.UpdatedAt,
 	}
 }
 

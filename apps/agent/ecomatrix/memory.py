@@ -36,10 +36,10 @@ class ShortTermMemory:
         return {"observations": list(self.observations), "last_receipts": list(self.last_receipts)}
 
 
-class LongTermMemory:
+class FileLongTermMemory:
     """File-backed long-term memory keyed by agent string_id."""
 
-    def __init__(self, path: str | os.PathLike[str] | None = None) -> None:
+    def __init__(self, path: str | os.PathLike[str] | None = None) -> None:  # type: ignore[no-redef]
         if path is None:
             path = os.environ.get(
                 "ECOMATRIX_AGENT_LTM_PATH",
@@ -73,3 +73,44 @@ class LongTermMemory:
         data[agent_id] = entry
         self._save(data)
         return entry
+
+
+class PostgresLongTermMemory:
+    """HTTP-backed long-term memory backed by the Go server's LTM endpoint.
+
+    Use this when you want memory to survive across agent processes and to be
+    visible to the dashboard. The file-backed `LongTermMemory` is simpler for
+    tests and offline runs.
+    """
+
+    def __init__(self, client) -> None:
+        self._client = client  # an A2AClient
+
+    def get(self, agent_id: str) -> dict:
+        r = self._client._client.get(f"/v1/agents/by-string-id/{agent_id}/long-term-memory")
+        if r.status_code == 404:
+            return {"summary": "", "facts": []}
+        r.raise_for_status()
+        body = r.json()
+        ltm = body.get("long_term_memory") or {}
+        return {"summary": ltm.get("summary", ""), "facts": list(ltm.get("facts") or [])}
+
+    def update(self, agent_id: str, *, summary: str | None = None,
+               append_fact: str | None = None) -> dict:
+        current = self.get(agent_id) or {}
+        new_summary = summary if summary is not None else (current.get("summary") or "")
+        new_facts = list(current.get("facts") or [])
+        if append_fact is not None:
+            new_facts.append(append_fact)
+            new_facts = new_facts[-50:]
+        body = {"summary": new_summary, "facts": new_facts}
+        r = self._client._client.put(
+            f"/v1/agents/by-string-id/{agent_id}/long-term-memory",
+            json=body,
+        )
+        r.raise_for_status()
+        return body
+
+
+# Back-compat alias: older code imports `LongTermMemory`.
+LongTermMemory = FileLongTermMemory
