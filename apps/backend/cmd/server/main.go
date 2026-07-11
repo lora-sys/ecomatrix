@@ -42,7 +42,8 @@ func main() {
 	hub := ws.NewHub(cfg.WSHubBuffer, time.Duration(cfg.WSHeartbeatS)*time.Second)
 	agents := repo.NewAgentRepo(db)
 	txs := repo.NewTxRepo(db)
-	trade := service.NewTradeService(db, agents, txs, hub)
+	metrics := service.NewMetricsService(db, agents, txs)
+	trade := service.NewTradeService(db, agents, txs, hub, metrics)
 
 	app := fiber.New(fiber.Config{
 		AppName:               "ecomatrix-backend",
@@ -50,7 +51,7 @@ func main() {
 		ErrorHandler:          fiberErrorHandler(log),
 	})
 	srv := &httpx.Server{
-		App: app, Agents: agents, Txs: txs, Trade: trade, Hub: hub,
+		App: app, Agents: agents, Txs: txs, Trade: trade, Metrics: metrics, Hub: hub,
 		Log: log, Admin: cfg.AdminToken, DB: sqlDB,
 	}
 	srv.Register()

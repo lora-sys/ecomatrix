@@ -26,13 +26,14 @@ type TradeService struct {
 	agents    *repo.AgentRepo
 	txs       *repo.TxRepo
 	publisher Publisher
+	metrics   *MetricsService
 }
 
-func NewTradeService(db *gorm.DB, agents *repo.AgentRepo, txs *repo.TxRepo, pub Publisher) *TradeService {
+func NewTradeService(db *gorm.DB, agents *repo.AgentRepo, txs *repo.TxRepo, pub Publisher, metrics *MetricsService) *TradeService {
 	if pub == nil {
 		pub = noopPublisher{}
 	}
-	return &TradeService{db: db, agents: agents, txs: txs, publisher: pub}
+	return &TradeService{db: db, agents: agents, txs: txs, publisher: pub, metrics: metrics}
 }
 
 type noopPublisher struct{}
@@ -167,6 +168,9 @@ func (s *TradeService) Settle(ctx context.Context, env a2a.Envelope, payload a2a
 		"to":     receipt.To,
 		"amount": receipt.Amount,
 	})
+	if s.metrics != nil {
+		s.metrics.NoteTrade()
+	}
 	return SettleResult{Receipt: receipt}, nil
 }
 

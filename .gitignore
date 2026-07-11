@@ -36,3 +36,18 @@ apps/agent/dist/
 # Sessions / tasks live in repo but skip huge traces
 sessions/*.trace.json
 .ruff_cache/
+
+# Frontend
+apps/frontend/node_modules/
+apps/frontend/.next/
+apps/frontend/test-results/
+apps/frontend/.swc/
+
+# Agent
+apps/agent/.venv/
+apps/agent/__pycache__/
+apps/agent/.pytest_cache/
+apps/agent/.ruff_cache/
+
+# Backend
+apps/backend/bin/

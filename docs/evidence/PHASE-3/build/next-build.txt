@@ -1,0 +1,27 @@
+=== next build ===
+npm notice run ecomatrix-frontend@0.3.0 npx
+npm notice run 'next' build
+   ▲ Next.js 15.1.0
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/3) ...
+ ✓ Generating static pages (3/3)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    4.28 kB         151 kB
+├ ○ /_not-found                          982 B           107 kB
+└ ƒ /agents/[id]                         1.89 kB         149 kB
++ First Load JS shared by all            106 kB
+  ├ chunks/4bd1b696-eeee3053570bc0f9.js  53.1 kB
+  ├ chunks/517-7fea0176d6f74789.js       50.6 kB
+  └ other shared chunks (total)          1.9 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

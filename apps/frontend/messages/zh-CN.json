@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "dashboard": "大盘",
+    "agents": "公民",
+    "feed": "广播"
+  },
+  "kpi": {
+    "agents": "存活 Agent",
+    "totalGold": "全网总资产",
+    "qps": "近 10s QPS",
+    "ws": "在线观测端",
+    "lastTrade": "最近成交"
+  },
+  "dashboard": {
+    "title": "上帝视角",
+    "subtitle": "EcoMatrix 经济演化网络的实时观测",
+    "noLive": "暂无连接 — 等待 WebSocket…"
+  },
+  "feed": {
+    "title": "赛博交易广播",
+    "empty": "等待第一笔交易…"
+  },
+  "agents": {
+    "title": "公民一览",
+    "balance": "资金池",
+    "vitality": "体力",
+    "credit": "信誉",
+    "job": "职业",
+    "detail": "详情"
+  },
+  "agent": {
+    "vitals": "基础状态",
+    "recent": "近期交易",
+    "noTrades": "该 Agent 暂无近期交易",
+    "back": "← 返回大盘"
+  }
+}

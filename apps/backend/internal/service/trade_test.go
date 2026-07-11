@@ -73,7 +73,7 @@ func TestTradeService_Settle_HappyPath(t *testing.T) {
 	wipe(t, db)
 	sender, target := seedAgents(t, db)
 
-	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil, nil)
 
 	env := goodEnv()
 	payload, err := a2a.DecodeTradePayload(env.Payload)
@@ -97,7 +97,7 @@ func TestTradeService_Settle_InsufficientFunds(t *testing.T) {
 	db := testDB(t)
 	wipe(t, db)
 	seedAgents(t, db)
-	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil, nil)
 
 	env := goodEnv()
 	env.Payload["offer"] = map[string]any{"currency_type": "GOLD", "amount": 99999}
@@ -114,7 +114,7 @@ func TestTradeService_Settle_UnknownAgent(t *testing.T) {
 	db := testDB(t)
 	wipe(t, db)
 	seedAgents(t, db)
-	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil, nil)
 
 	env := goodEnv()
 	env.Sender = "agent_does_not_exist"
@@ -130,7 +130,7 @@ func TestTradeService_Settle_SelfTrade(t *testing.T) {
 	db := testDB(t)
 	wipe(t, db)
 	seedAgents(t, db)
-	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil, nil)
 
 	env := goodEnv()
 	env.Sender = "agent_merchant_03"
@@ -146,7 +146,7 @@ func TestTradeService_Settle_IdempotentReplay(t *testing.T) {
 	db := testDB(t)
 	wipe(t, db)
 	seedAgents(t, db)
-	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, repo.NewAgentRepo(db), repo.NewTxRepo(db), nil, nil)
 
 	env := goodEnv()
 	payload, err := a2a.DecodeTradePayload(env.Payload)
@@ -186,7 +186,7 @@ func TestTradeService_Settle_50ConcurrentRacesNoDoubleSpend(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	svc := service.NewTradeService(db, agents, repo.NewTxRepo(db), nil)
+	svc := service.NewTradeService(db, agents, repo.NewTxRepo(db), nil, nil)
 
 	const N = 50
 	const amount = int64(30)

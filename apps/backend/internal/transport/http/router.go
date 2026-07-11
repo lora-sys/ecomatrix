@@ -19,18 +19,20 @@ import (
 )
 
 type Server struct {
-	App    *fiber.App
-	Agents *repo.AgentRepo
-	Txs    *repo.TxRepo
-	Trade  *service.TradeService
-	Hub    *ws.Hub
-	Log    *slog.Logger
-	Admin  string
-	DB     *sql.DB
+	App     *fiber.App
+	Agents  *repo.AgentRepo
+	Txs     *repo.TxRepo
+	Trade   *service.TradeService
+	Metrics *service.MetricsService
+	Hub     *ws.Hub
+	Log     *slog.Logger
+	Admin   string
+	DB      *sql.DB
 }
 
 func (s *Server) Register() {
 	s.App.Use(requestIDMiddleware())
+	s.App.Use(corsMiddleware(s.Log))
 	s.App.Use(loggingMiddleware(s.Log))
 
 	s.App.Get("/healthz", s.healthz)
@@ -45,9 +47,30 @@ func (s *Server) Register() {
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
 	v1.Post("/trades", s.postTrade)
 	v1.Get("/transactions", s.listTransactions)
+	v1.Get("/metrics", s.getMetrics)
 }
 
 // ---------- middleware ----------
+
+// corsMiddleware allows the dashboard origin (configurable) to call /v1/*.
+// In dev we allow any origin; tighten before production.
+func corsMiddleware(log *slog.Logger) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		origin := c.Get("Origin")
+		if origin == "" {
+			return c.Next()
+		}
+		c.Set("Access-Control-Allow-Origin", origin)
+		c.Set("Vary", "Origin")
+		c.Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+		c.Set("Access-Control-Allow-Headers", "Content-Type,X-Admin-Token,X-Request-Id")
+		c.Set("Access-Control-Allow-Credentials", "true")
+		if c.Method() == fiber.MethodOptions {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+		return c.Next()
+	}
+}
 
 func requestIDMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -208,6 +231,14 @@ func (s *Server) postTrade(c *fiber.Ctx) error {
 		"receipt":    res.Receipt,
 		"replay":     res.Replay,
 	})
+}
+
+func (s *Server) getMetrics(c *fiber.Ctx) error {
+	snap, err := s.Metrics.Collect(c.Context(), s.Hub.ConnCount())
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(snap)
 }
 
 func (s *Server) listTransactions(c *fiber.Ctx) error {

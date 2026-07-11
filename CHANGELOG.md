@@ -2,11 +2,26 @@
 
 All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.3.0] — 2026-07-11 — Phase 3 God's Eye
 
-### Phase 3 — God's Eye (queued)
-- Next.js dashboard with Aceternity UI
-- WebSocket-driven KPI tiles, trade broadcast, agent detail
+### Added
+- Next.js 15 (App Router) + React 19 + Tailwind + Framer Motion + zustand dashboard at `apps/frontend`.
+- Routes: `/` (dashboard with KPI tiles, wealth chart, trade broadcast, agent list, job-type 3D cards), `/agents/[id]` (vitals + recent trades via tracing-beam).
+- `LiveProvider` client: WebSocket reconnect with exponential backoff, periodic `/v1/metrics` polling, value damping for KPI tiles.
+- Aceternity-style local components: `GlowingCard`, `TracingBeam`, `ThreeDCard`.
+- i18n strings (`zh-CN` default) — pre-wired, swap-in for English via `next-intl`.
+- Playwright e2e covering dashboard and agent detail on desktop + mobile.
+- Go: `GET /v1/metrics` (`MetricsService`); CORS middleware for dashboard.
+- Metrics tests: empty DB, jobs breakdown, QPS window.
+
+### Verified
+- Playwright 4/4 green on desktop + mobile.
+- Next.js first-load JS: 151 KB (budget 250 KB).
+- Backend `/v1/metrics` shows live `recent_qps` and `last_trade_at` after a trade burst.
+
+[0.3.0]: https://github.com/ecomatrix/ecomatrix/compare/v0.2.0...v0.3.0
+
+## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded
 

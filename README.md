@@ -7,8 +7,8 @@ A fully autonomous multi-agent sandbox. AI agents with distinct jobs, balances, 
 | Phase | Scope                                | State |
 | ----- | ------------------------------------ | ----- |
 | 1     | Physical Engine — Go backend + Postgres | ✅ Shipped (`docs/evidence/PHASE-1/`) |
-| 2     | Brain — Python LangGraph agent         | ⏳ Queued (`tasks/ISSUE-012..017.md`) |
-| 3     | God's Eye — Next.js dashboard         | ⏳ Queued (`tasks/ISSUE-018..023.md`) |
+| 2     | Brain — Python LangGraph agent         | ✅ Shipped (`docs/evidence/PHASE-2/`) |
+| 3     | God's Eye — Next.js dashboard         | ✅ Shipped (`docs/evidence/PHASE-3/`) |
 
 ## Repository Layout
 

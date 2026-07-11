@@ -1,0 +1,38 @@
+=== RUN   TestMetricsService_Collect_EmptyDB
+--- PASS: TestMetricsService_Collect_EmptyDB (0.09s)
+=== RUN   TestMetricsService_NoteTrade_QPSWindow
+--- PASS: TestMetricsService_NoteTrade_QPSWindow (0.07s)
+=== RUN   TestMetricsService_Collect_JobsBreakdown
+--- PASS: TestMetricsService_Collect_JobsBreakdown (0.07s)
+=== RUN   TestTradeService_Settle_HappyPath
+--- PASS: TestTradeService_Settle_HappyPath (0.10s)
+=== RUN   TestTradeService_Settle_InsufficientFunds
+--- PASS: TestTradeService_Settle_InsufficientFunds (0.09s)
+=== RUN   TestTradeService_Settle_UnknownAgent
+--- PASS: TestTradeService_Settle_UnknownAgent (0.09s)
+=== RUN   TestTradeService_Settle_SelfTrade
+--- PASS: TestTradeService_Settle_SelfTrade (0.07s)
+=== RUN   TestTradeService_Settle_IdempotentReplay
+--- PASS: TestTradeService_Settle_IdempotentReplay (0.09s)
+=== RUN   TestTradeService_Settle_50ConcurrentRacesNoDoubleSpend
+--- PASS: TestTradeService_Settle_50ConcurrentRacesNoDoubleSpend (0.65s)
+PASS
+ok  	github.com/ecomatrix/backend/internal/service	2.347s
+=== RUN   TestValidate_HappyPath
+--- PASS: TestValidate_HappyPath (0.00s)
+=== RUN   TestValidate_ProtocolMismatch
+--- PASS: TestValidate_ProtocolMismatch (0.00s)
+=== RUN   TestValidate_MissingMsgID
+--- PASS: TestValidate_MissingMsgID (0.00s)
+=== RUN   TestValidate_UnknownAction
+--- PASS: TestValidate_UnknownAction (0.00s)
+=== RUN   TestValidate_ClockSkew
+--- PASS: TestValidate_ClockSkew (0.00s)
+=== RUN   TestDecodeTradePayload_SelfTradePassesCodecButBlockedAtService
+--- PASS: TestDecodeTradePayload_SelfTradePassesCodecButBlockedAtService (0.00s)
+=== RUN   TestDecodeTradePayload_NegativeAmount
+--- PASS: TestDecodeTradePayload_NegativeAmount (0.00s)
+=== RUN   TestDecodeTradePayload_BadCurrency
+--- PASS: TestDecodeTradePayload_BadCurrency (0.00s)
+PASS
+ok  	github.com/ecomatrix/backend/pkg/a2a	1.029s

@@ -31,12 +31,12 @@
 
 | ID    | Title | Owner | Status |
 | ----- | ----- | ----- | ------ |
-| ISS-018 | Next.js 15 + Tailwind + Aceternity scaffold      | frontend | Todo |
-| ISS-019 | WS client hook + zustand store + value damping   | frontend | Todo |
-| ISS-020 | KPI tiles + wealth chart + trade broadcast       | frontend | Todo |
-| ISS-021 | Agent detail panel + CoT trace viewer            | frontend | Todo |
-| ISS-022 | Playwright tests + desktop/mobile screenshots    | qa | Todo |
-| ISS-023 | Phase 3 evidence + `v0.3.0` tag                  | release | Todo |
+| ISS-018 | Next.js 15 + Tailwind + Aceternity scaffold      | frontend | Done        | apps/frontend scaffolded on port 3100. |
+| ISS-019 | WS client hook + zustand store + value damping   | frontend | Done        | LiveProvider + reconnect backoff. |
+| ISS-020 | KPI tiles + wealth chart + trade broadcast       | frontend | Done        | 4 tiles + wealth chart + feed + 3D cards. |
+| ISS-021 | Agent detail panel + CoT trace viewer            | frontend | Done        | `/agents/[id]` with tracing-beam timeline. |
+| ISS-022 | Playwright tests + desktop/mobile screenshots    | qa | Done        | 4/4 passing; screenshots in evidence. |
+| ISS-023 | Phase 3 evidence + `v0.3.0` tag                  | release | Done        | docs/evidence/PHASE-3/. |
 
 ## Blockers
 (none)
