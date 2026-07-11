@@ -20,6 +20,19 @@
 - Never log A2A `payload.reasoning` (free-text; could carry user content).
 - `credit_score` for `agent_hacker_*` is a sensitive signal; never log at INFO.
 
+## 3.5 CORS Allowlist (Phase 3.6)
+
+`ECOMATRIX_CORS_ALLOWED_ORIGINS` is a comma-separated allowlist:
+
+- `"*"` — wildcard (any origin).
+- `"http://localhost:3100,https://dashboard.example.com"` — exact match.
+- Unset + `ECOMATRIX_DEV=true` (the default for `make demo`) — defaults to `"*"`.
+- Unset + `ECOMATRIX_DEV=false` — **no CORS headers**. Prod is locked by default; you must explicitly set the allowlist.
+
+Preflight requests (`OPTIONS`) from disallowed origins return **403**. Actual `GET` / `POST` requests still pass through; the browser blocks the response client-side. This is the standard pattern: the server doesn't leak whether the resource exists.
+
+Covered by 6 tests in `internal/transport/http/cors_test.go`.
+
 ## 4. Supply Chain
 - Go: `go mod tidy` + `govulncheck` in CI.
 - npm: `pnpm audit --prod` + Renovate.

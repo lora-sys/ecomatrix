@@ -86,6 +86,16 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.5]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.4...v0.3.5
 
+## [0.3.6] — 2026-07-11 — CORS allowlist
+
+### Security
+- `ECOMATRIX_CORS_ALLOWED_ORIGINS` (comma-separated) replaces the previous permissive `Access-Control-Allow-Origin: <reflected>`. Production with no allowlist emits no CORS headers; the browser blocks the response client-side. Preflight from disallowed origins returns 403.
+
+### Added
+- 7 CORS tests in `internal/transport/http/cors_test.go`.
+
+[0.3.6]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.5...v0.3.6
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

@@ -1,0 +1,15 @@
+# CORS allowlist verification
+
+## Config
+ECOMATRIX_CORS_ALLOWED_ORIGINS=http://localhost:3100
+
+## Allowed origin: http://localhost:3100
+### GET /v1/metrics
+
+### OPTIONS /v1/metrics (preflight)
+
+## Disallowed origin: http://evil.example
+### GET /v1/metrics
+
+### OPTIONS /v1/metrics (preflight)
+

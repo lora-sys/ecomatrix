@@ -6,7 +6,9 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ecomatrix/backend/internal/domain"
@@ -29,11 +31,17 @@ type Server struct {
 	Log     *slog.Logger
 	Admin   string
 	DB      *sql.DB
+	CORS    corsConfig
+}
+
+type corsConfig struct {
+	AllowedOrigins []string // empty = no CORS; "*" = wildcard; otherwise exact match
+	DevMode        bool
 }
 
 func (s *Server) Register() {
 	s.App.Use(requestIDMiddleware())
-	s.App.Use(corsMiddleware(s.Log))
+	s.App.Use(corsMiddleware(s.CORS, s.Log))
 	s.App.Use(loggingMiddleware(s.Log))
 
 	s.App.Get("/healthz", s.healthz)
@@ -57,19 +65,45 @@ func (s *Server) Register() {
 
 // ---------- middleware ----------
 
-// corsMiddleware allows the dashboard origin (configurable) to call /v1/*.
-// In dev we allow any origin; tighten before production.
-func corsMiddleware(log *slog.Logger) fiber.Handler {
+// corsMiddleware enforces an origin allowlist configured via
+// ECOMATRIX_CORS_ALLOWED_ORIGINS (comma-separated).
+//
+//   - "*"            -> wildcard (any origin)
+//   - "https://a,https://b" -> exact match
+//   - unset + ECOMATRIX_DEV=true -> defaults to ["*"] for local dev
+//   - unset + ECOMATRIX_DEV != true -> no CORS headers (effectively locked down)
+//
+// Preflight requests with disallowed origins get a 403 instead of the
+// permissive silent pass the previous version emitted.
+func corsMiddleware(cfg corsConfig, log *slog.Logger) fiber.Handler {
+	allowAll := false
+	allowed := map[string]struct{}{}
+	for _, o := range cfg.AllowedOrigins {
+		if o == "*" {
+			allowAll = true
+			break
+		}
+		allowed[o] = struct{}{}
+	}
 	return func(c *fiber.Ctx) error {
 		origin := c.Get("Origin")
-		if origin == "" {
-			return c.Next()
+		if origin != "" {
+			ok := allowAll
+			if !ok {
+				_, ok = allowed[origin]
+			}
+			if !ok {
+				if c.Method() == fiber.MethodOptions {
+					return c.SendStatus(fiber.StatusForbidden)
+				}
+				return c.Next()
+			}
+			c.Set("Access-Control-Allow-Origin", origin)
+			c.Set("Vary", "Origin")
+			c.Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+			c.Set("Access-Control-Allow-Headers", "Content-Type,X-Admin-Token,X-Request-Id")
+			c.Set("Access-Control-Allow-Credentials", "true")
 		}
-		c.Set("Access-Control-Allow-Origin", origin)
-		c.Set("Vary", "Origin")
-		c.Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-		c.Set("Access-Control-Allow-Headers", "Content-Type,X-Admin-Token,X-Request-Id")
-		c.Set("Access-Control-Allow-Credentials", "true")
 		if c.Method() == fiber.MethodOptions {
 			return c.SendStatus(fiber.StatusNoContent)
 		}
@@ -410,6 +444,26 @@ func httpStatusForCode(c a2a.Code) int {
 	default:
 		return fiber.StatusInternalServerError
 	}
+}
+
+// loadCORSOrigins reads the allowlist from the environment. Returns nil
+// (no CORS) when ECOMATRIX_DEV != true and no origins are configured.
+func loadCORSOrigins() []string {
+	raw := os.Getenv("ECOMATRIX_CORS_ALLOWED_ORIGINS")
+	if raw == "" {
+		if os.Getenv("ECOMATRIX_DEV") == "true" {
+			return []string{"*"}
+		}
+		return nil
+	}
+	var out []string
+	for _, o := range strings.Split(raw, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			out = append(out, o)
+		}
+	}
+	return out
 }
 
 func isValidJobType(j string) bool {
