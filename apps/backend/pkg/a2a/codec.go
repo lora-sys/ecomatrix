@@ -47,6 +47,46 @@ func Validate(env Envelope) error {
 	return nil
 }
 
+// FeedPayload is the typed shape of a POST_FEED envelope payload.
+type FeedPayload struct {
+	Content    string `json:"content"`
+	IntentType string `json:"intent_type"`
+}
+
+// AllowedIntentTypes is the closed set; the codec rejects anything else.
+var AllowedIntentTypes = map[string]struct{}{
+	"OFFER":   {},
+	"REQUEST": {},
+	"SOCIAL":  {},
+	"META":    {},
+}
+
+// DecodeFeedPayload narrows the action-specific payload for POST_FEED.
+func DecodeFeedPayload(payload map[string]any) (FeedPayload, error) {
+	if payload == nil {
+		return FeedPayload{}, New(CodeInvalidEnvelope, "payload is required", false)
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return FeedPayload{}, New(CodeInvalidEnvelope, "payload is not JSON-encodable", false)
+	}
+	var out FeedPayload
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return FeedPayload{}, New(CodeInvalidEnvelope, "payload shape is invalid", false)
+	}
+	if out.Content == "" {
+		return FeedPayload{}, New(CodeInvalidEnvelope, "content is required", false)
+	}
+	if len(out.Content) > 500 {
+		return FeedPayload{}, New(CodeInvalidEnvelope, "content must be <= 500 chars", false)
+	}
+	if _, ok := AllowedIntentTypes[out.IntentType]; !ok {
+		return FeedPayload{}, New(CodeInvalidEnvelope,
+			fmt.Sprintf("intent_type %q must be one of OFFER/REQUEST/SOCIAL/META", out.IntentType), false)
+	}
+	return out, nil
+}
+
 // DecodeTradePayload narrows the action-specific payload for EXECUTE_TRADE.
 func DecodeTradePayload(payload map[string]any) (TradePayload, error) {
 	if payload == nil {

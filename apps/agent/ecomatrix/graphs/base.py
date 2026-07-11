@@ -34,6 +34,7 @@ class AgentState(TypedDict, total=False):
     last_action: dict[str, Any]
     last_error: str
     last_receipt: dict[str, Any]
+    last_feed: dict[str, Any]
 
 
 @dataclass
@@ -81,8 +82,26 @@ def make_graph(job_type: str, *, llm: LLM, client: A2AClient,
     def act(state: AgentState) -> dict[str, Any]:
         d = state.get("decision") or {}
         action = str(d.get("action", "SKIP")).upper()
+        out: dict[str, Any] = {"last_action": d}
+
+        # Always try a social-feed post so the dashboard has movement even on SKIP ticks.
+        try:
+            intent = "SOCIAL"
+            content = str(d.get("reasoning", "") or "活着。")
+            if action == "EXECUTE_TRADE":
+                intent = "OFFER" if str(d.get("target_agent", "")).startswith("agent_merchant") else "REQUEST"
+            post_id = client.post_feed(
+                sender=state["agent_id"],
+                content=content,
+                intent_type=intent,
+            )
+            out["last_feed"] = {"post_id": post_id, "intent_type": intent, "content": content}
+        except A2AError as e:
+            out["last_error"] = f"{e.code.value}:{e.message}"
+
         if action != "EXECUTE_TRADE":
-            return {"last_action": d}
+            return out
+
         target = str(d.get("target_agent", ""))
         amount = int(d.get("amount", 0))
         reasoning = str(d.get("reasoning", ""))
@@ -99,15 +118,14 @@ def make_graph(job_type: str, *, llm: LLM, client: A2AClient,
                 "to": receipt.to,
                 "amount": receipt.amount,
             })
-            return {
-                "last_action": d,
-                "last_receipt": {
-                    "tx_id": receipt.tx_id, "to": receipt.to, "amount": receipt.amount,
-                },
-                "last_receipts": receipts,
+            out["last_receipt"] = {
+                "tx_id": receipt.tx_id, "to": receipt.to, "amount": receipt.amount,
             }
+            out["last_receipts"] = receipts
+            return out
         except A2AError as e:
-            return {"last_action": d, "last_error": f"{e.code.value}:{e.message}"}
+            out["last_error"] = f"{e.code.value}:{e.message}"
+            return out
 
     g = StateGraph(AgentState)
     g.add_node("observe", observe)

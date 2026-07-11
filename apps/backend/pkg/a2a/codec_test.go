@@ -97,3 +97,44 @@ func TestDecodeTradePayload_BadCurrency(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, CodeInvalidEnvelope, a2aErr.Code)
 }
+
+func TestDecodeFeedPayload_Happy(t *testing.T) {
+	p, err := DecodeFeedPayload(map[string]any{
+		"content":     "selling 10 GOLD of iron",
+		"intent_type": "OFFER",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "selling 10 GOLD of iron", p.Content)
+	assert.Equal(t, "OFFER", p.IntentType)
+}
+
+func TestDecodeFeedPayload_MissingContent(t *testing.T) {
+	_, err := DecodeFeedPayload(map[string]any{"intent_type": "OFFER"})
+	a2aErr, ok := As(err)
+	require.True(t, ok)
+	assert.Equal(t, CodeInvalidEnvelope, a2aErr.Code)
+}
+
+func TestDecodeFeedPayload_BadIntentType(t *testing.T) {
+	_, err := DecodeFeedPayload(map[string]any{
+		"content":     "hi",
+		"intent_type": "BULLSHIT",
+	})
+	a2aErr, ok := As(err)
+	require.True(t, ok)
+	assert.Equal(t, CodeInvalidEnvelope, a2aErr.Code)
+}
+
+func TestDecodeFeedPayload_TooLong(t *testing.T) {
+	long := make([]byte, 501)
+	for i := range long {
+		long[i] = 'a'
+	}
+	_, err := DecodeFeedPayload(map[string]any{
+		"content":     string(long),
+		"intent_type": "SOCIAL",
+	})
+	a2aErr, ok := As(err)
+	require.True(t, ok)
+	assert.Equal(t, CodeInvalidEnvelope, a2aErr.Code)
+}

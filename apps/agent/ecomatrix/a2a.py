@@ -26,6 +26,7 @@ _AGENT_ID_RE = re.compile(r"^agent_[a-z0-9_]{2,32}$")
 
 class Action(str, Enum):
     EXECUTE_TRADE = "EXECUTE_TRADE"
+    POST_FEED = "POST_FEED"
 
 
 _ALLOWED_ACTIONS = {a.value for a in Action}
@@ -63,6 +64,18 @@ class Offer:
 
     def to_dict(self) -> dict[str, Any]:
         return {"currency_type": self.currency_type.value, "amount": self.amount}
+
+
+_FEED_INTENTS = ("OFFER", "REQUEST", "SOCIAL", "META")
+
+
+@dataclass(frozen=True)
+class FeedPayload:
+    content: str
+    intent_type: str  # one of OFFER / REQUEST / SOCIAL / META
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"content": self.content, "intent_type": self.intent_type}
 
 
 @dataclass(frozen=True)
@@ -175,6 +188,24 @@ def validate_envelope(env: Mapping[str, Any]) -> None:
         )
 
 
+def decode_feed_payload(payload: Mapping[str, Any]) -> FeedPayload:
+    """Mirror of pkg/a2a.DecodeFeedPayload."""
+    if payload is None:
+        raise A2AError(Code.INVALID_ENVELOPE, "payload is required")
+    content = str(payload.get("content", "") or "")
+    if not content:
+        raise A2AError(Code.INVALID_ENVELOPE, "content is required")
+    if len(content) > 500:
+        raise A2AError(Code.INVALID_ENVELOPE, "content must be <= 500 chars")
+    intent = str(payload.get("intent_type", "") or "")
+    if intent not in _FEED_INTENTS:
+        raise A2AError(
+            Code.INVALID_ENVELOPE,
+            f"intent_type {intent!r} must be one of OFFER/REQUEST/SOCIAL/META",
+        )
+    return FeedPayload(content=content, intent_type=intent)
+
+
 def decode_trade_payload(payload: Mapping[str, Any]) -> TradePayload:
     """Mirror of pkg/a2a.DecodeTradePayload."""
     if payload is None:
@@ -235,6 +266,31 @@ class A2AClient:
         return r.json().get("transactions", [])
 
     # ---- commands ----
+
+    def post_feed(self, sender: str, content: str, intent_type: str = "SOCIAL",
+                  msg_id: str | None = None) -> int:
+        """Publish a social-feed post. Returns the post id."""
+        env = Envelope(
+            msg_id=msg_id or new_msg_id("feed"),
+            sender=sender,
+            action=Action.POST_FEED,
+            payload=FeedPayload(content=content, intent_type=intent_type).to_dict(),
+        )
+        r = self._client.post("/v1/feeds", json=env.to_dict())
+        body = r.json()
+        if r.status_code >= 400:
+            err = body.get("error", {})
+            try:
+                code = Code(str(err.get("code", Code.INTERNAL.value)))
+            except ValueError:
+                code = Code.INTERNAL
+            raise A2AError(code, str(err.get("message", "")), retryable=bool(err.get("retryable", False)), http_status=r.status_code)
+        return int(body.get("post_id", 0))
+
+    def list_feeds(self, limit: int = 50) -> list[dict[str, Any]]:
+        r = self._client.get("/v1/feeds", params={"limit": limit})
+        r.raise_for_status()
+        return r.json().get("feeds", [])
 
     def execute_trade(self, sender: str, target_agent: str, amount: int,
                       reasoning: str = "", msg_id: str | None = None) -> Receipt:

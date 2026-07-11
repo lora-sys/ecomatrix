@@ -87,3 +87,34 @@ def test_decode_trade_payload_bad_currency():
 def test_new_msg_id_format():
     mid = new_msg_id("trade")
     assert validate_msg_id(mid)
+
+
+def test_decode_feed_payload_happy():
+    from ecomatrix.a2a import decode_feed_payload
+    p = decode_feed_payload({"content": "selling 10 GOLD of iron", "intent_type": "OFFER"})
+    assert p.content == "selling 10 GOLD of iron"
+    assert p.intent_type == "OFFER"
+
+
+def test_decode_feed_payload_missing_content():
+    import pytest
+    from ecomatrix.a2a import decode_feed_payload, A2AError, Code
+    with pytest.raises(A2AError) as exc:
+        decode_feed_payload({"intent_type": "OFFER"})
+    assert exc.value.code == Code.INVALID_ENVELOPE
+
+
+def test_decode_feed_payload_bad_intent():
+    import pytest
+    from ecomatrix.a2a import decode_feed_payload, A2AError, Code
+    with pytest.raises(A2AError) as exc:
+        decode_feed_payload({"content": "hi", "intent_type": "BULLSHIT"})
+    assert exc.value.code == Code.INVALID_ENVELOPE
+
+
+def test_decode_feed_payload_too_long():
+    import pytest
+    from ecomatrix.a2a import decode_feed_payload, A2AError, Code
+    with pytest.raises(A2AError) as exc:
+        decode_feed_payload({"content": "a" * 501, "intent_type": "SOCIAL"})
+    assert exc.value.code == Code.INVALID_ENVELOPE

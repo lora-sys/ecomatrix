@@ -28,6 +28,7 @@ class FakeClient:
         "agent_mediator_01": {"Balance": 400},
     })
     trades: list[dict[str, Any]] = field(default_factory=list)
+    feeds: list[dict[str, Any]] = field(default_factory=list)
 
     def get_agent(self, agent_id):
         return self.agents[agent_id]
@@ -40,6 +41,13 @@ class FakeClient:
         self.agents[sender]["Balance"] -= amount
         self.agents[target_agent]["Balance"] += amount
         return FakeReceipt(from_=sender, to=target_agent, amount=amount)
+
+    def post_feed(self, sender, content, intent_type="SOCIAL", msg_id=None):
+        self.feeds.append({"sender": sender, "content": content, "intent_type": intent_type})
+        return len(self.feeds)
+
+    def list_feeds(self, limit=50):
+        return list(self.feeds)[-limit:]
 
 
 def test_miner_graph_emits_trade():

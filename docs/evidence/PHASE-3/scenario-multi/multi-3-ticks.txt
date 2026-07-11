@@ -1,0 +1,11 @@
+{
+  "agents": 13,
+  "ticks": 3,
+  "settled": 37,
+  "rejected": 2,
+  "feeds_posted": 39,
+  "errors": [],
+  "world_initial": 2560,
+  "world_final": 2560,
+  "conservation": true
+}

@@ -21,6 +21,24 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.0]: https://github.com/ecomatrix/ecomatrix/compare/v0.2.0...v0.3.0
 
+## [0.3.1] — 2026-07-11 — Social Square + Multi-Agent Scenario
+
+### Added
+- A2A `POST_FEED` action + `POST /v1/feeds` + `GET /v1/feeds?limit=N`.
+- `FeedRepo` (GORM) + 3 codec tests.
+- Python `A2AClient.post_feed()` / `list_feeds()` with 4 parity tests.
+- `--scenario multi` runner: spawns every seeded agent in parallel (ThreadPoolExecutor), drives N ticks, asserts world-GOLD conservation.
+- Graph `act` node emits a feed post every tick (intent = SOCIAL/OFFER/REQUEST depending on decision).
+- Dashboard `SocialFeed` panel + BFF proxy `/api/proxy/feeds` and `/api/proxy/metrics`.
+
+### Verified
+- Multi-scenario (3 ticks, 13 agents): 37 settled, 39 feed posts, 0 errors, world 2560 → 2560.
+- `/v1/metrics` QPS rises from 0 to 16 during the burst.
+- Playwright 4/4 still green after dashboard layout change.
+- Dashboard desktop screenshot shows mixed [REQUEST]/[SOCIAL]/[OFFER] posts in the new panel.
+
+[0.3.1]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.0...v0.3.1
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

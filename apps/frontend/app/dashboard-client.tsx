@@ -6,6 +6,7 @@ import { KPITile } from "../components/kpi-tile";
 import { GlowingCard } from "../components/glowing-card";
 import { WealthChart } from "../components/wealth-chart";
 import { TradeFeed } from "../components/trade-feed";
+import { SocialFeed } from "../components/social-feed";
 import { ThreeDCard } from "../components/three-d-card";
 import { Agent } from "../lib/types";
 import { LiveProvider } from "../components/live-provider";
@@ -45,19 +46,24 @@ export function DashboardClient({ initialAgents }: { initialAgents: Agent[] }) {
           <KPITile label="在线观测端" value={metrics.ws_connections} tone="rose" />
         </section>
 
-        {/* Body: wealth + feed + agents */}
+        {/* Body: wealth + feeds + agents */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <GlowingCard label="财富分布 · TOP 12" tone="gold">
               <WealthChart agents={initialAgents} />
             </GlowingCard>
           </div>
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             <GlowingCard label="赛博交易广播" tone="cyan">
               <TradeFeed />
             </GlowingCard>
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
+            <GlowingCard label="社交广场 · POST_FEED" tone="violet">
+              <SocialFeed />
+            </GlowingCard>
+          </div>
+          <div className="lg:col-span-3 lg:col-start-9">
             <GlowingCard label="公民一览" tone="violet">
               <ul className="divide-y divide-hairline/60 text-sm">
                 {initialAgents.slice(0, 8).map((a) => (

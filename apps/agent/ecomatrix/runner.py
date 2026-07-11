@@ -21,6 +21,7 @@ from typing import Any
 
 from .a2a import A2AClient, Code
 from .graphs import miner, merchant, hacker, mediator
+from .graphs.base import run_one_tick
 from .llm import get_default_llm
 from .memory import LongTermMemory, ShortTermMemory
 
@@ -134,6 +135,95 @@ def _strip_for_log(s: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in s.items() if k != "msg"}
 
 
+
+def run_multi_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
+                    log: logging.Logger) -> dict[str, Any]:
+    """Phase 2.5 multi-agent scenario: every seeded agent runs in parallel.
+
+    Spawns one LangGraph per seeded agent (filtered to those that exist on the
+    backend), advances them in lockstep for `ticks` rounds, and reports
+    per-role and global aggregates. World-GOLD conservation is asserted.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    llm = get_default_llm()
+    ltm = LongTermMemory()
+
+    seeded = client.list_agents(limit=200)
+    # Map job_type -> [string_id, ...].
+    by_job: dict[str, list[str]] = {}
+    for a in seeded:
+        by_job.setdefault(str(a.get("JobType", "")), []).append(str(a.get("StringID", "")))
+
+    log.info("multi-agent spawn", extra={"agents": len(seeded),
+                                         "jobs": {k: len(v) for k, v in by_job.items()}})
+
+    # Build a graph per agent.
+    agents: list[tuple[Any, ShortTermMemory, str, str]] = []  # (graph, mem, agent_id, job)
+    for job, ids in by_job.items():
+        builder = GRAPH_BUILDERS.get(job)
+        if not builder:
+            continue
+        for agent_id in ids:
+            graph, mem = _spawn(client, llm, job, agent_id, ltm)
+            agents.append((graph, mem, agent_id, job))
+
+    initial_world = sum(a.get("Balance", 0) for a in seeded)
+    settled = 0
+    rejected = 0
+    posted = 0
+    errors: list[str] = []
+
+    def tick_one(graph, mem, agent_id, job):
+        return job, agent_id, run_one_tick(graph, agent_id=agent_id, job_type=job), mem
+
+    for t in range(ticks):
+        with ThreadPoolExecutor(max_workers=min(16, len(agents))) as ex:
+            futures = [ex.submit(tick_one, g, m, aid, jb) for (g, m, aid, jb) in agents]
+            for fut in as_completed(futures):
+                job, agent_id, result, mem = fut.result()
+                if result.receipt is not None:
+                    settled += 1
+                    mem.record_receipt({
+                        "tx_id": result.receipt.tx_id,
+                        "to": result.receipt.to,
+                        "amount": result.receipt.amount,
+                    })
+                    ltm.update(agent_id, append_fact=f"settled {result.receipt.tx_id}")
+                    log.info("settled", extra={"role": job, "agent": agent_id,
+                                                "tx_id": result.receipt.tx_id})
+                elif result.error is not None:
+                    if result.error.code == Code.INSUFFICIENT_FUNDS:
+                        rejected += 1
+                    else:
+                        errors.append(f"{agent_id}:{result.error.code.value}:{result.error.message}")
+                    log.info("rejected", extra={"role": job, "agent": agent_id,
+                                                "code": result.error.code.value})
+                else:
+                    log.info("skipped", extra={"role": job, "agent": agent_id})
+
+        time.sleep(tick_seconds)
+
+    final_world = sum(a.get("Balance", 0) for a in client.list_agents(limit=200))
+    feeds = client.list_feeds(limit=500)
+    posted = len(feeds)
+
+    summary = {
+        "agents": len(agents),
+        "ticks": ticks,
+        "settled": settled,
+        "rejected": rejected,
+        "feeds_posted": posted,
+        "errors": errors[:20],
+        "world_initial": initial_world,
+        "world_final": final_world,
+        "conservation": initial_world == final_world,
+    }
+    log.info("multi-agent end summary=%s",
+             json.dumps({k: v for k, v in summary.items() if k != "msg"}, sort_keys=True))
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+    return summary
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="EcoMatrix agent runner")
     p.add_argument("--backend", default=os.environ.get("ECOMATRIX_AGENT_BACKEND_URL", "http://localhost:8080"))
@@ -147,6 +237,10 @@ def main(argv: list[str] | None = None) -> int:
     with A2AClient(args.backend) as client:
         if args.scenario == "two_agent":
             summary = run_two_agent(client, ticks=args.ticks, tick_seconds=args.tick_seconds, log=log)
+            ok = summary["conservation"] and not summary["errors"]
+            return 0 if ok else 1
+        if args.scenario == "multi":
+            summary = run_multi_agent(client, ticks=args.ticks, tick_seconds=args.tick_seconds, log=log)
             ok = summary["conservation"] and not summary["errors"]
             return 0 if ok else 1
         log.error("scenario %s not yet implemented", args.scenario)

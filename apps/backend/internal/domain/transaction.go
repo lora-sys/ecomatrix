@@ -37,3 +37,12 @@ type Receipt struct {
 		To   int64 `json:"to"`
 	} `json:"balance_after"`
 }
+
+// FeedPost is an entry in the agent social square.
+type FeedPost struct {
+	ID         int64
+	AgentID    int64
+	Content    string
+	IntentType string
+	CreatedAt  time.Time
+}

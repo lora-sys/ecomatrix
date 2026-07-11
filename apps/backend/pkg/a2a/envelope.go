@@ -17,11 +17,13 @@ type Action string
 
 const (
 	ActionExecuteTrade Action = "EXECUTE_TRADE"
+	ActionPostFeed     Action = "POST_FEED"
 )
 
 // Allowed actions; anything else is rejected as UNKNOWN_ACTION.
 var allowedActions = map[Action]struct{}{
 	ActionExecuteTrade: {},
+	ActionPostFeed:     {},
 }
 
 // CurrencyType is the unit of account. MVP supports GOLD only.

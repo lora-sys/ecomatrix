@@ -22,6 +22,7 @@ type Server struct {
 	App     *fiber.App
 	Agents  *repo.AgentRepo
 	Txs     *repo.TxRepo
+	Feed    *repo.FeedRepo
 	Trade   *service.TradeService
 	Metrics *service.MetricsService
 	Hub     *ws.Hub
@@ -47,6 +48,8 @@ func (s *Server) Register() {
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
 	v1.Post("/trades", s.postTrade)
 	v1.Get("/transactions", s.listTransactions)
+	v1.Get("/feeds", s.listFeeds)
+	v1.Post("/feeds", s.postFeed)
 	v1.Get("/metrics", s.getMetrics)
 }
 
@@ -239,6 +242,66 @@ func (s *Server) getMetrics(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(snap)
+}
+
+func (s *Server) listFeeds(c *fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "50"))
+	rows, err := s.Feed.Recent(c.Context(), limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"feeds": rows})
+}
+
+func (s *Server) postFeed(c *fiber.Ctx) error {
+	var env a2a.Envelope
+	if err := c.BodyParser(&env); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(a2aEnvelopeError(a2a.New(a2a.CodeInvalidEnvelope, "body is not valid JSON", false), ""))
+	}
+	if err := a2a.Validate(env); err != nil {
+		if e, ok := a2a.As(err); ok {
+			return c.Status(httpStatusForCode(e.Code)).JSON(a2aEnvelopeError(e, env.MsgID))
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(a2aEnvelopeError(a2a.New(a2a.CodeInvalidEnvelope, err.Error(), false), env.MsgID))
+	}
+	if env.Action != a2a.ActionPostFeed {
+		return c.Status(fiber.StatusBadRequest).JSON(a2aEnvelopeError(
+			a2a.New(a2a.CodeUnknownAction, "POST /v1/feeds requires POST_FEED action", false), env.MsgID))
+	}
+	payload, err := a2a.DecodeFeedPayload(env.Payload)
+	if err != nil {
+		if e, ok := a2a.As(err); ok {
+			return c.Status(httpStatusForCode(e.Code)).JSON(a2aEnvelopeError(e, env.MsgID))
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(a2aEnvelopeError(a2a.New(a2a.CodeInvalidEnvelope, err.Error(), false), env.MsgID))
+	}
+	sender, err := s.Agents.ByStringID(c.Context(), env.Sender)
+	if err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return c.Status(httpStatusForCode(a2a.CodeUnknownAgent)).JSON(a2aEnvelopeError(a2a.New(a2a.CodeUnknownAgent, "sender unknown", false), env.MsgID))
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	post, err := s.Feed.Insert(c.Context(), domain.FeedPost{
+		AgentID:    sender.ID,
+		Content:    payload.Content,
+		IntentType: payload.IntentType,
+	})
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	s.Hub.Publish(map[string]any{
+		"type":        "feed.posted",
+		"post_id":     post.ID,
+		"agent_id":    sender.StringID,
+		"intent_type": post.IntentType,
+	})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"protocol_v": a2a.ProtocolVersion,
+		"msg_id":     env.MsgID,
+		"status":     "POSTED",
+		"post_id":    post.ID,
+	})
 }
 
 func (s *Server) listTransactions(c *fiber.Ctx) error {
