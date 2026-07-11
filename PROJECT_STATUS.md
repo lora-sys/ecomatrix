@@ -25,7 +25,10 @@
 | ISS-014 | LangGraph state machines per job type             | agent | Done | miner / merchant / hacker / mediator graphs. |
 | ISS-015 | Long-term memory migration + repo                | database | Todo | File-backed LTM in use; Postgres JSONB column is the follow-up. |
 | ISS-016 | Two-agent end-to-end scenario (miner↔merchant)   | qa | Done | 5 + 10 tick runs; world conservation holds. |
-| ISS-017 | Phase 2 evidence + `v0.2.0` tag                  | release | Done | `docs/evidence/PHASE-2/`. |
+| ISS-017 | Phase 2 evidence + `v0.2.0` tag                  | release | Done |
+| ISS-024 | Social square: POST /v1/feeds + A2A POST_FEED    | backend | Done | Issue 024/025 collapsed into the multi-scenario. |
+| ISS-025 | --scenario multi (parallel agents)              | agent   | Done | |
+| ISS-026 | Dashboard social-feed panel + BFF proxy         | frontend| Done | | `docs/evidence/PHASE-2/`. |
 
 ## Phase 3 — God's Eye (Week 3)
 
@@ -45,6 +48,7 @@
 (none)
 
 ## Recent Changes
+- 2026-07-11 — Phase 3.1: social square (POST_FEED) + --scenario multi (13 agents, 3 ticks, 37 settled, 39 feed posts, world conservation holds).
 - 2026-07-11 — Phase 2 shipped: Python LangGraph agent drives the Go backend end-to-end; 14 unit/integration tests + 5/10-tick two-agent scenarios pass with world-GOLD conservation.
 - 2026-07-11 — Phase 1 shipped: Go backend live, 14 tests pass under `-race`, 50-goroutine concurrency proof recorded.
 - 2026-07-11 — Bootstrap complete: Source-of-Truth docs, harness operating system, Phase 1–3 issue drafts.
