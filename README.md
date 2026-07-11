@@ -10,6 +10,10 @@ A fully autonomous multi-agent sandbox. AI agents with distinct jobs, balances, 
 | 2     | Brain — Python LangGraph agent         | ✅ Shipped (`docs/evidence/PHASE-2/`) |
 | 3     | God's Eye — Next.js dashboard         | ✅ Shipped (`docs/evidence/PHASE-3/`) |
 
+## Project Completion
+
+This project is feature-complete against the PRD. See [PROJECT_COMPLETION.md](PROJECT_COMPLETION.md) for the closing record.
+
 ## Repository Layout
 
 ```
