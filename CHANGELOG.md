@@ -122,6 +122,28 @@ sha256(BODY)` canonical form. 5-minute replay window.
 
 [0.3.8]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.7...v0.3.8
 
+## [0.3.9] — 2026-07-11 — MVP polish pass
+
+### Changed
+- `apps/frontend/`: SSR-fetch `/v1/metrics` in `app/page.tsx`; `LiveProvider` seeds the store on mount so first paint shows real KPIs (was 0/0).
+- `apps/frontend/styles/globals.css`: `prefers-reduced-motion` media query disables animations (DESIGN.md §6).
+- `apps/frontend/app/fonts.ts`: `next/font/google` loaders for Space Grotesk / Inter / JetBrains Mono.
+- `apps/frontend/components/{trade-feed,social-feed}.tsx`: `role="log" aria-live="polite" aria-relevant="additions"` on the live lists; `role="status"` on empty states.
+- `apps/frontend/components/error-banner.tsx`: top-level error banner driven by `fetchError` slice.
+- `apps/backend/internal/repo/tx_repo.go`: `Recent()` moved in from the split `tx_repo_list.go` (file removed).
+- `apps/backend/internal/config/config.go`: `ECOMATRIX_DEV` defaults to `false`; CORS only permissive when explicitly opted in.
+
+### Added
+- `apps/backend/internal/auth/ratelimit.go`: token-bucket per (agent, action) — burst 30, refill 5/s. 3 new tests.
+- Rate-limit middleware applied to `POST /v1/trades` and `POST /v1/feeds`. Returns 429 with `RATE_LIMITED` code.
+
+### Verified
+- 39 Go tests pass under -race (was 36).
+- Browser E2E (agent-browser, real Chromium): 5/5 features pass.
+- Rate-limit test: 30 burst requests succeed, the next 5 return 429.
+
+[0.3.9]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.8...v0.3.9
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

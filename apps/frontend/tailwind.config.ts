@@ -23,9 +23,12 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
-        body: ["var(--font-body)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        display: ['var(--font-display)', "system-ui", "sans-serif"],
+        body: ['var(--font-body)', "system-ui", "sans-serif"],
+        mono: ['var(--font-mono)', "ui-monospace", "monospace"],
+      },
+      fontSize: {
+        'display-xl': ['2.25rem', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
       },
       boxShadow: {
         neon: "0 0 0 1px rgba(34,211,238,0.18), 0 0 32px rgba(34,211,238,0.10)",

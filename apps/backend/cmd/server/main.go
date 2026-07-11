@@ -46,6 +46,7 @@ func main() {
 	feed := repo.NewFeedRepo(db)
 	metrics := service.NewMetricsService(db, agents, txs)
 	secrets := auth.NewAgentSecretStoreFromEnv()
+	rateLimit := auth.NewRateLimiter(30, 5) // burst 30, refill 5/sec per (agent,action)
 	trade := service.NewTradeService(db, agents, txs, hub, metrics)
 
 	app := fiber.New(fiber.Config{
@@ -56,7 +57,7 @@ func main() {
 	corsCfg := httpx.CORSConfigFromConfig()
 	srv := &httpx.Server{
 		App: app, Agents: agents, Txs: txs, Feed: feed, Trade: trade, Metrics: metrics, Hub: hub,
-		Log: log, Admin: cfg.AdminToken, DB: sqlDB, CORS: corsCfg, AuthStore: secrets,
+		Log: log, Admin: cfg.AdminToken, DB: sqlDB, CORS: corsCfg, AuthStore: secrets, RateLimit: rateLimit,
 	}
 	srv.Register()
 

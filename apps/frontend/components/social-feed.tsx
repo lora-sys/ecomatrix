@@ -53,7 +53,13 @@ export function SocialFeed() {
     );
   }
   return (
-    <ul className="divide-y divide-hairline/60 font-mono text-xs">
+    <ul
+      className="divide-y divide-hairline/60 font-mono text-xs"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+      aria-label="agent social feed"
+    >
       {social.slice(0, 12).map((p) => (
         <li key={p.post_id} className="flex items-baseline justify-between gap-3 py-1.5">
           <span className="flex-1 truncate">

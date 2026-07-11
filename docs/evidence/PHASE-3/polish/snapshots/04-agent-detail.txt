@@ -1,0 +1,27 @@
+- link "← 返回大盘" [ref=e1]
+- banner
+  - heading "agent_miner_01" [level=1, ref=e2]
+  - paragraph
+    - StaticText "MINER"
+- generic
+  - StaticText "基础状态"
+  - DescriptionList
+    - term "BALANCE"
+    - definition
+      - StaticText "80"
+    - term "VITALITY"
+    - definition
+      - StaticText "80"
+    - term "CREDIT"
+    - definition
+      - StaticText "60"
+  - StaticText "长期记忆 · LTM"
+  - paragraph
+    - StaticText "该 Agent 暂无长期记忆"
+  - StaticText "近期交易"
+  - generic
+    - list
+      - listitem [level=1]
+        - generic
+          - StaticText "agent_miner_01 → agent_merchant_0320 GOLD SETTLED"
+- alert

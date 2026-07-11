@@ -57,6 +57,7 @@ func mustInt(key string, def int) int {
 // Load reads env vars and validates required ones.
 func Load() (Config, error) {
 	originsRaw := must("ECOMATRIX_CORS_ALLOWED_ORIGINS", "")
+	dev := mustBools("ECOMATRIX_DEV", false)
 	origins := []string{}
 	if originsRaw != "" {
 		for _, o := range strings.Split(originsRaw, ",") {
@@ -65,8 +66,10 @@ func Load() (Config, error) {
 				origins = append(origins, o)
 			}
 		}
+	} else if dev {
+		// Dev mode without explicit origins defaults to wildcard.
+		origins = []string{"*"}
 	}
-	dev := mustBools("ECOMATRIX_DEV", true)
 	cfg := Config{
 		HTTPAddr:           must("ECOMATRIX_HTTP_ADDR", ":8080"),
 		DBDSN:              must("ECOMATRIX_DB_DSN", "postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable"),

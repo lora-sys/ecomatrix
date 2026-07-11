@@ -5,8 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 	"os"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +34,7 @@ type Server struct {
 	DB        *sql.DB
 	CORS      corsConfig
 	AuthStore *auth.AgentSecretStore
+	RateLimit *auth.RateLimiter
 }
 
 type corsConfig struct {
@@ -59,10 +60,10 @@ func (s *Server) Register() {
 	v1.Put("/agents/by-string-id/:sid/long-term-memory", s.putAgentLTM)
 	v1.Get("/agents/:id", s.getAgent)
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
-	v1.Post("/trades", s.postTrade)
+	v1.Post("/trades", s.rateLimit("EXECUTE_TRADE"), s.postTrade)
 	v1.Get("/transactions", s.listTransactions)
 	v1.Get("/feeds", s.listFeeds)
-	v1.Post("/feeds", s.postFeed)
+	v1.Post("/feeds", s.rateLimit("POST_FEED"), s.postFeed)
 	v1.Get("/metrics", s.getMetrics)
 }
 
@@ -326,6 +327,33 @@ func (s *Server) postTrade(c *fiber.Ctx) error {
 	})
 }
 
+func (s *Server) rateLimit(action string) fiber.Handler {
+	actionVal := a2a.Action(action)
+	return func(c *fiber.Ctx) error {
+		c.Locals("a2a_action", actionVal)
+		if s.RateLimit == nil {
+			return c.Next()
+		}
+		// We don't know the agent yet (HMAC runs after this in Register); we
+		// use the X-Agent-Id header as a soft key. After HMAC verifies it,
+		// the AuthStore can also re-check.
+		sender := c.Get("X-Agent-Id")
+		if sender == "" {
+			sender = "anonymous"
+		}
+		if !s.RateLimit.Allow(sender + "|" + action) {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": fiber.Map{
+					"code":     a2a.CodeRateLimited,
+					"message":  "rate limit exceeded",
+					"retryable": true,
+				},
+			})
+		}
+		return c.Next()
+	}
+}
+
 func (s *Server) getMetrics(c *fiber.Ctx) error {
 	snap, err := s.Metrics.Collect(c.Context(), s.Hub.ConnCount())
 	if err != nil {
@@ -453,8 +481,9 @@ func httpStatusForCode(c a2a.Code) int {
 // (no CORS) when ECOMATRIX_DEV != true and no origins are configured.
 func loadCORSOrigins() []string {
 	raw := os.Getenv("ECOMATRIX_CORS_ALLOWED_ORIGINS")
+	dev := os.Getenv("ECOMATRIX_DEV") == "true"
 	if raw == "" {
-		if os.Getenv("ECOMATRIX_DEV") == "true" {
+		if dev {
 			return []string{"*"}
 		}
 		return nil
@@ -477,11 +506,35 @@ func isValidJobType(j string) bool {
 	return false
 }
 
+// rateLimitMiddleware caps the rate of state-mutating A2A requests per
+// (sender, action). It is applied AFTER HMAC verification, so the bucket
+// key is the legitimate agent identity.
+func rateLimitMiddleware(rl *auth.RateLimiter) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if rl == nil {
+			return c.Next()
+		}
+		action := string(c.Locals("a2a_action").(a2a.Action))
+		sender := c.Locals("agent_id").(string)
+		if !rl.Allow(sender + "|" + action) {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": fiber.Map{
+					"code":    a2a.CodeRateLimited,
+					"message": "rate limit exceeded",
+					"retryable": true,
+				},
+			})
+		}
+		return c.Next()
+	}
+}
+
 // CORSConfigFromConfig returns a corsConfig populated from the process
 // environment. Used by cmd/server/main.go.
 func CORSConfigFromConfig() corsConfig {
+	dev := os.Getenv("ECOMATRIX_DEV") == "true"
 	return corsConfig{
 		AllowedOrigins: loadCORSOrigins(),
-		DevMode:        true,
+		DevMode:        dev,
 	}
 }

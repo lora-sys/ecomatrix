@@ -1,0 +1,12 @@
+{
+  "initial_kpi_agents": "13",
+  "initial_kpi_gold": "2,560",
+  "initial_kpi_qps": "0.00",
+  "initial_kpi_ws": "0",
+  "qps_after_trade": "0.00",
+  "ws_after_trade": "0",
+  "trade_visible": true,
+  "feed_visible": true,
+  "detail_ok": true,
+  "rate_limit_429_count": 5
+}

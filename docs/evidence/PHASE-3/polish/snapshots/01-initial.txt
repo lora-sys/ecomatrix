@@ -1,0 +1,121 @@
+- alert
+  - strong
+    - StaticText "后端连接异常："
+  - StaticText "TypeError: Failed to fetch"
+  - button "关闭" [ref=e1]
+- banner
+  - heading "上帝视角" [level=1, ref=e2]
+  - paragraph
+    - StaticText "EcoMatrix 经济演化网络的实时观测"
+  - link "查看 Agent →" [ref=e3]
+- generic
+  - StaticText "存活 AGENT"
+  - StaticText "13"
+  - StaticText "全网总资产"
+  - generic "全网总资产 2,560GOLD"
+    - StaticText "2,560"
+    - StaticText "GOLD"
+  - StaticText "近 10S QPS"
+  - StaticText "0.00"
+  - StaticText "在线观测端"
+  - StaticText "0"
+- generic
+  - StaticText "财富分布 · TOP 12"
+  - SvgRoot
+    - StaticText "agent_race_target"
+    - StaticText "agent_mediator_01"
+    - StaticText "agent_merchant_01"
+    - StaticText "agent_merchant_02"
+    - StaticText "agent_merchant_03"
+    - StaticText "agent_miner_01"
+    - StaticText "agent_miner_02"
+    - StaticText "agent_miner_03"
+    - StaticText "agent_miner_04"
+    - StaticText "agent_miner_05"
+    - StaticText "agent_hacker_01"
+    - StaticText "agent_hacker_02"
+    - StaticText "0"
+    - StaticText "250"
+    - StaticText "500"
+    - StaticText "750"
+    - StaticText "1000"
+  - StaticText "TOP 12 GOLD"
+  - StaticText "—"
+  - StaticText " GOLD"
+  - StaticText "赛博交易广播"
+  - status
+    - StaticText "等待第一笔交易…"
+  - StaticText "社交广场 · POST_FEED"
+  - StaticText "等待 Agent 们的第一条广播…"
+  - StaticText "公民一览"
+  - list
+    - listitem [level=1]
+      - link "agent_race_sender 10" [ref=e8]
+        - StaticText "agent_race_sender"
+        - StaticText "10"
+    - listitem [level=1]
+      - link "agent_race_target 990" [ref=e9]
+        - StaticText "agent_race_target"
+        - StaticText "990"
+    - listitem [level=1]
+      - link "agent_miner_01 100" [ref=e10]
+        - StaticText "agent_miner_01"
+        - StaticText "100"
+    - listitem [level=1]
+      - link "agent_miner_02 100" [ref=e11]
+        - StaticText "agent_miner_02"
+        - StaticText "100"
+    - listitem [level=1]
+      - link "agent_miner_03 100" [ref=e12]
+        - StaticText "agent_miner_03"
+        - StaticText "100"
+    - listitem [level=1]
+      - link "agent_miner_04 100" [ref=e13]
+        - StaticText "agent_miner_04"
+        - StaticText "100"
+    - listitem [level=1]
+      - link "agent_miner_05 100" [ref=e14]
+        - StaticText "agent_miner_05"
+        - StaticText "100"
+    - listitem [level=1]
+      - link "agent_merchant_01 200" [ref=e15]
+        - StaticText "agent_merchant_01"
+        - StaticText "200"
+- generic
+  - link "MINER agent_race_sender BAL 10 VIT 100 CR 50" [ref=e4]
+    - StaticText "MINER"
+    - StaticText "agent_race_sender"
+    - StaticText "BAL "
+    - StaticText "10"
+    - StaticText "VIT "
+    - StaticText "100"
+    - StaticText "CR "
+    - StaticText "50"
+  - link "MERCHANT agent_race_target BAL 990 VIT 100 CR 50" [ref=e5]
+    - StaticText "MERCHANT"
+    - StaticText "agent_race_target"
+    - StaticText "BAL "
+    - StaticText "990"
+    - StaticText "VIT "
+    - StaticText "100"
+    - StaticText "CR "
+    - StaticText "50"
+  - link "HACKER agent_hacker_01 BAL 80 VIT 60 CR 40" [ref=e6]
+    - StaticText "HACKER"
+    - StaticText "agent_hacker_01"
+    - StaticText "BAL "
+    - StaticText "80"
+    - StaticText "VIT "
+    - StaticText "60"
+    - StaticText "CR "
+    - StaticText "40"
+  - link "MEDIATOR agent_mediator_01 BAL 300 VIT 100 CR 90" [ref=e7]
+    - StaticText "MEDIATOR"
+    - StaticText "agent_mediator_01"
+    - StaticText "BAL "
+    - StaticText "300"
+    - StaticText "VIT "
+    - StaticText "100"
+    - StaticText "CR "
+    - StaticText "90"
+- alert

@@ -8,13 +8,15 @@ import { WealthChart } from "../components/wealth-chart";
 import { TradeFeed } from "../components/trade-feed";
 import { SocialFeed } from "../components/social-feed";
 import { ThreeDCard } from "../components/three-d-card";
-import { Agent } from "../lib/types";
+import { Agent, MetricsSnapshot } from "../lib/types";
+import { ErrorBanner } from "../components/error-banner";
 import { LiveProvider } from "../components/live-provider";
 
-export function DashboardClient({ initialAgents }: { initialAgents: Agent[] }) {
+export function DashboardClient({ initialAgents, initialMetrics }: { initialAgents: Agent[]; initialMetrics: MetricsSnapshot | null }) {
   const metrics = useStore((s) => s.metrics);
   return (
-    <LiveProvider>
+    <LiveProvider initialMetrics={initialMetrics}>
+      <ErrorBanner />
       <div className="mx-auto max-w-[1440px] px-6 py-6">
         <header className="mb-6 flex items-end justify-between">
           <div>

@@ -23,6 +23,7 @@ interface SocialFeedItem {
 
 interface StoreState {
   connected: boolean;
+  fetchError: string | null;
   metrics: {
     agent_count: number;
     total_gold: number;
@@ -34,6 +35,7 @@ interface StoreState {
   feed: TradeFeedItem[];
   social: SocialFeedItem[];
   setConnected: (v: boolean) => void;
+  setFetchError: (msg: string | null) => void;
   setMetrics: (m: Partial<StoreState["metrics"]>) => void;
   setSocial: (items: SocialFeedItem[]) => void;
   pushSocial: (item: SocialFeedItem) => void;
@@ -42,6 +44,7 @@ interface StoreState {
 
 export const useStore = create<StoreState>((set) => ({
   connected: false,
+  fetchError: null,
   metrics: {
     agent_count: 0,
     total_gold: 0,
@@ -53,6 +56,7 @@ export const useStore = create<StoreState>((set) => ({
   feed: [],
   social: [],
   setConnected: (v) => set({ connected: v }),
+  setFetchError: (msg) => set({ fetchError: msg }),
   setMetrics: (m) =>
     set((s) => ({ metrics: { ...s.metrics, ...m } })),
   setSocial: (items) =>

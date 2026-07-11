@@ -1,0 +1,5 @@
+[OK] dashboard panels visible — kpi=True chart=True trade=True social=True citizen=True jobs=True
+[OK] agent detail page has all panels — header=True vitals=True ltm=True recent=True
+[OK] trade broadcast updated via WebSocket
+[OK] social square updated via WebSocket
+[OK] dashboard URL is / — http://127.0.0.1:3100/
