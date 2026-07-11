@@ -1,0 +1,159 @@
+=== scenario run 1 (5 ticks) ===
+2026-07-11 14:07:22,941 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,942 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,943 INFO ecomatrix.runner scenario start
+2026-07-11 14:07:22,943 INFO ecomatrix.runner tick 0
+2026-07-11 14:07:22,947 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,957 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,959 INFO ecomatrix.runner settled
+2026-07-11 14:07:22,961 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,967 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:22,968 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,268 INFO ecomatrix.runner tick 1
+2026-07-11 14:07:23,270 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,276 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,277 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,278 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,284 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,284 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,585 INFO ecomatrix.runner tick 2
+2026-07-11 14:07:23,586 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,592 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,593 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,596 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,601 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,602 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,902 INFO ecomatrix.runner tick 3
+2026-07-11 14:07:23,904 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,911 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,912 INFO ecomatrix.runner settled
+2026-07-11 14:07:23,915 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,919 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:23,920 INFO ecomatrix.runner settled
+2026-07-11 14:07:24,220 INFO ecomatrix.runner tick 4
+2026-07-11 14:07:24,223 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,229 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,230 INFO ecomatrix.runner settled
+2026-07-11 14:07:24,231 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,235 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,236 INFO ecomatrix.runner settled
+2026-07-11 14:07:24,537 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,538 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,540 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents?limit=200&offset=0 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,542 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents?limit=200&offset=0 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,546 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/transactions?limit=200 "HTTP/1.1 200 OK"
+2026-07-11 14:07:24,547 INFO ecomatrix.runner scenario end summary={"conservation": true, "errors": [], "final": {"merchant": 200, "miner": 50, "world": 2560}, "initial": {"merchant": 200, "miner": 100, "world": 2560}, "ledger_size": 43, "rejected": 0, "settled": 10}
+{
+  "settled": 10,
+  "rejected": 0,
+  "errors": [],
+  "initial": {
+    "miner": 100,
+    "merchant": 200,
+    "world": 2560
+  },
+  "final": {
+    "miner": 50,
+    "merchant": 200,
+    "world": 2560
+  },
+  "ledger_size": 43,
+  "conservation": true
+}
+=== scenario run 2 (10 ticks) ===
+2026-07-11 14:07:25,299 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,300 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,300 INFO ecomatrix.runner scenario start
+2026-07-11 14:07:25,300 INFO ecomatrix.runner tick 0
+2026-07-11 14:07:25,303 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,308 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,309 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,311 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,316 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,317 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,517 INFO ecomatrix.runner tick 1
+2026-07-11 14:07:25,519 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,524 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,526 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,528 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,533 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,534 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,734 INFO ecomatrix.runner tick 2
+2026-07-11 14:07:25,735 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,740 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,741 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,743 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,749 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,749 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,949 INFO ecomatrix.runner tick 3
+2026-07-11 14:07:25,951 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,956 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,957 INFO ecomatrix.runner settled
+2026-07-11 14:07:25,960 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,966 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:25,966 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,166 INFO ecomatrix.runner tick 4
+2026-07-11 14:07:26,169 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,174 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,175 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,178 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,184 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,185 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,385 INFO ecomatrix.runner tick 5
+2026-07-11 14:07:26,387 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,395 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,396 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,399 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,406 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,407 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,608 INFO ecomatrix.runner tick 6
+2026-07-11 14:07:26,610 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,617 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,618 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,620 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,625 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,626 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,827 INFO ecomatrix.runner tick 7
+2026-07-11 14:07:26,829 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,834 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,835 INFO ecomatrix.runner settled
+2026-07-11 14:07:26,836 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,842 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:26,843 INFO ecomatrix.runner settled
+2026-07-11 14:07:27,043 INFO ecomatrix.runner tick 8
+2026-07-11 14:07:27,045 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,050 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,051 INFO ecomatrix.runner settled
+2026-07-11 14:07:27,053 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,057 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,058 INFO ecomatrix.runner settled
+2026-07-11 14:07:27,258 INFO ecomatrix.runner tick 9
+2026-07-11 14:07:27,261 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,267 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,268 INFO ecomatrix.runner settled
+2026-07-11 14:07:27,269 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,275 INFO httpx HTTP Request: POST http://127.0.0.1:8080/v1/trades "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,276 INFO ecomatrix.runner settled
+2026-07-11 14:07:27,478 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_miner_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,479 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents/by-string-id/agent_merchant_01 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,481 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents?limit=200&offset=0 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,481 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/agents?limit=200&offset=0 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,482 INFO httpx HTTP Request: GET http://127.0.0.1:8080/v1/transactions?limit=200 "HTTP/1.1 200 OK"
+2026-07-11 14:07:27,483 INFO ecomatrix.runner scenario end summary={"conservation": true, "errors": [], "final": {"merchant": 200, "miner": 0, "world": 2560}, "initial": {"merchant": 200, "miner": 100, "world": 2560}, "ledger_size": 63, "rejected": 0, "settled": 20}
+{
+  "settled": 20,
+  "rejected": 0,
+  "errors": [],
+  "initial": {
+    "miner": 100,
+    "merchant": 200,
+    "world": 2560
+  },
+  "final": {
+    "miner": 0,
+    "merchant": 200,
+    "world": 2560
+  },
+  "ledger_size": 63,
+  "conservation": true
+}

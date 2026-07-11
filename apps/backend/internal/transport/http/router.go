@@ -39,6 +39,8 @@ func (s *Server) Register() {
 
 	v1 := s.App.Group("/v1")
 	v1.Get("/agents", s.listAgents)
+	// Order matters: more specific route first.
+	v1.Get("/agents/by-string-id/:sid", s.getAgentByStringID)
 	v1.Get("/agents/:id", s.getAgent)
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
 	v1.Post("/trades", s.postTrade)
@@ -107,6 +109,21 @@ func (s *Server) listAgents(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(fiber.Map{"agents": rows})
+}
+
+func (s *Server) getAgentByStringID(c *fiber.Ctx) error {
+	sid := c.Params("sid")
+	if sid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "sid is required")
+	}
+	a, err := s.Agents.ByStringID(c.Context(), sid)
+	if err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(a)
 }
 
 func (s *Server) getAgent(c *fiber.Ctx) error {

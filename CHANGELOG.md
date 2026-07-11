@@ -8,10 +8,25 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 - Next.js dashboard with Aceternity UI
 - WebSocket-driven KPI tiles, trade broadcast, agent detail
 
-### Phase 2 — Brain Onboarded (queued)
-- Python LangGraph agent runner
-- LLM provider abstraction (OpenAI-compatible default)
-- Two-agent end-to-end trade scenario
+## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded
+
+### Added
+- Python 3.12 agent runtime at `apps/agent` (uv-managed venv).
+- A2A v1.1 client (`ecomatrix/a2a.py`) — Python mirror of `pkg/a2a`; 8 parity tests.
+- LLM provider abstraction: `StubLLM` (deterministic, default) + `OpenAICompatibleLLM`.
+- LangGraph state machines for miner, merchant, hacker, mediator (observe → think → act).
+- Short-term memory (graph state) + file-backed long-term memory.
+- Runner CLI: `--scenario two_agent` drives two agents for N ticks; emits a JSON summary with world-GOLD conservation check.
+- New Go endpoint `GET /v1/agents/by-string-id/{sid}` so Python agents can resolve by `string_id`.
+- 14 pytest tests pass; ruff clean.
+
+### Verified
+- 5-tick scenario: 10 settled, 0 rejected, 0 errors, world 2560 → 2560.
+- 10-tick scenario: 20 settled, 0 rejected, 0 errors, world 2560 → 2560 (miner drains to 0).
+
+[0.2.0]: https://github.com/ecomatrix/ecomatrix/compare/v0.1.0...v0.2.0
+
+## [0.1.0] — 2026-07-11 — Phase 1 Physical Engine
 
 ## [0.1.0] — 2026-07-11 — Phase 1 Physical Engine
 

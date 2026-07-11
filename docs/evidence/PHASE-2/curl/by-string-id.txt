@@ -1,0 +1,11 @@
+=== GET /v1/agents/by-string-id/agent_miner_01 ===
+{
+    "ID": 3,
+    "StringID": "agent_miner_01",
+    "JobType": "miner",
+    "Balance": 0,
+    "Vitality": 80,
+    "CreditScore": 60,
+    "CreatedAt": "2026-07-11T14:07:22.34064+08:00",
+    "UpdatedAt": "2026-07-11T14:07:27.263009+08:00"
+}
