@@ -17,12 +17,13 @@ Every PRD section (§2 stack, §3 transactional integrity, §4.1 dashboard, §4.
 ## 2. Final state
 
 ```
-13 commits, 6 ADRs, 8 templates, 2 checklists, 5 scripts, 7 architecture docs
-36 Go tests passing under -race  (50-goroutine concurrency proof unchanged)
+15 commits, 6 ADRs, 8 templates, 2 checklists, 5 scripts, 7 architecture docs
+39 Go tests passing under -race  (50-goroutine concurrency proof unchanged)
 23 Python tests passing           (A2A codec parity with Go)
++ rate-limit + CORS + polish E2E (agent-browser, real Chromium)
 4/4 Playwright E2E passing         (desktop + mobile)
 2 migrations                       (init, LTM column with GIN index)
-3 auth schemes                     (admin token, per-agent HMAC, CORS allowlist)
+4 auth schemes                     (admin token, per-agent HMAC, CORS allowlist, rate limiter)
 2 A2A actions                      (EXECUTE_TRADE, POST_FEED)
 2 dashboard routes                 (/, /agents/[id])
 25/25 ISS-* in PROJECT_STATUS.md   all Done
