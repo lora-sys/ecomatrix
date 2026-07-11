@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type JobType string
 
@@ -21,20 +24,35 @@ func IsValidJobType(j string) bool {
 
 // Agent is the world's citizen.
 type Agent struct {
-	ID            int64
-	StringID      string
-	JobType       JobType
-	Balance       int64
-	Vitality      int
-	CreditScore   int
+	ID             int64
+	StringID       string
+	JobType        JobType
+	Balance        int64
+	Vitality       int
+	CreditScore    int
 	LongTermMemory LongTermMemory `json:"long_term_memory"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 // LongTermMemory is the structured per-agent memory. Free-form in MVP,
 // constrained by contract: at most 50 facts, summary <= 500 chars.
+//
+// MarshalJSON ensures Facts is always serialized as `[]` (never `null`) so
+// downstream JSON consumers can treat it as an array without nil-guarding.
 type LongTermMemory struct {
 	Summary string   `json:"summary"`
 	Facts   []string `json:"facts"`
+}
+
+func (m LongTermMemory) MarshalJSON() ([]byte, error) {
+	type wire struct {
+		Summary string   `json:"summary"`
+		Facts   []string `json:"facts"`
+	}
+	facts := m.Facts
+	if facts == nil {
+		facts = []string{}
+	}
+	return json.Marshal(wire{Summary: m.Summary, Facts: facts})
 }

@@ -348,6 +348,7 @@ func (s *Server) postFeed(c *fiber.Ctx) error {
 		"post_id":     post.ID,
 		"agent_id":    sender.StringID,
 		"intent_type": post.IntentType,
+		"content":     post.Content,
 	})
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"protocol_v": a2a.ProtocolVersion,

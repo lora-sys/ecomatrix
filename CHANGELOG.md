@@ -67,6 +67,16 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.3]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.2...v0.3.3
 
+## [0.3.4] — 2026-07-11 — Live social square + LTM marshal fix
+
+### Changed
+- `apps/frontend/hooks/store.ts`: `social` slice + `feed.posted` handler + dedupe helpers (live items take precedence over fetched).
+- `apps/frontend/components/social-feed.tsx`: reads from the store; one-shot initial fetch hydrates the panel, WS keeps it fresh.
+- `apps/backend/internal/transport/http/router.go`: `feed.posted` event now carries `content` so the dashboard can render without a follow-up fetch.
+- `apps/backend/internal/domain/agent.go`: `LongTermMemory.MarshalJSON` ensures `facts` is always serialized as `[]` (never `null`).
+
+[0.3.4]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.3...v0.3.4
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded
