@@ -56,6 +56,17 @@ All notable changes to EcoMatrix are recorded here. Format: [Keep a Changelog](h
 
 [0.3.2]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.1...v0.3.2
 
+## [0.3.3] — 2026-07-11 — Wealth chart upgrade
+
+### Changed
+- `components/wealth-chart.tsx`: from inline bar viz to a `recharts` AreaChart with the `grad-wealth` gradient, job-colored dots, and a snapshot footer.
+
+### Cost
+- Adds `recharts@^2.13.0` to `apps/frontend`.
+- First-load JS: 151 KB → 253 KB (at the 250 KB budget).
+
+[0.3.3]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.2...v0.3.3
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded
