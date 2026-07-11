@@ -18,10 +18,10 @@ type MetricsService struct {
 	agents *repo.AgentRepo
 	txs    *repo.TxRepo
 
-	mu             sync.RWMutex
-	recentCounts   []int64     // 1-second buckets for the last 60 seconds
-	lastBucketSec  int64
-	lastTradeAtNS  atomic.Int64 // unix nano of the last settled trade; 0 if none
+	mu            sync.RWMutex
+	recentCounts  []int64 // 1-second buckets for the last 60 seconds
+	lastBucketSec int64
+	lastTradeAtNS atomic.Int64 // unix nano of the last settled trade; 0 if none
 }
 
 func NewMetricsService(db *gorm.DB, agents *repo.AgentRepo, txs *repo.TxRepo) *MetricsService {

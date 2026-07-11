@@ -4,11 +4,11 @@ package main
 import (
 	"errors"
 	"log/slog"
-	"time"
 	"os"
+	"time"
 
-	"github.com/ecomatrix/backend/internal/config"
 	"github.com/ecomatrix/backend/internal/auth"
+	"github.com/ecomatrix/backend/internal/config"
 	"github.com/ecomatrix/backend/internal/observability"
 	"github.com/ecomatrix/backend/internal/repo"
 	"github.com/ecomatrix/backend/internal/service"

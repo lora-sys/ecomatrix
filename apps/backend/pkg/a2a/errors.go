@@ -9,15 +9,15 @@ import (
 type Code string
 
 const (
-	CodeInvalidEnvelope    Code = "INVALID_ENVELOPE"
-	CodeUnknownAction      Code = "UNKNOWN_ACTION"
-	CodeProtocolMismatch   Code = "PROTOCOL_MISMATCH"
-	CodeUnknownAgent       Code = "UNKNOWN_AGENT"
-	CodeInsufficientFunds  Code = "INSUFFICIENT_FUNDS"
-	CodeSelfTrade          Code = "SELF_TRADE"
-	CodeRateLimited        Code = "RATE_LIMITED"
-	CodeInternal           Code = "INTERNAL"
-	CodeDuplicateReplayOK  Code = "IDEMPOTENT_REPLAY"
+	CodeInvalidEnvelope   Code = "INVALID_ENVELOPE"
+	CodeUnknownAction     Code = "UNKNOWN_ACTION"
+	CodeProtocolMismatch  Code = "PROTOCOL_MISMATCH"
+	CodeUnknownAgent      Code = "UNKNOWN_AGENT"
+	CodeInsufficientFunds Code = "INSUFFICIENT_FUNDS"
+	CodeSelfTrade         Code = "SELF_TRADE"
+	CodeRateLimited       Code = "RATE_LIMITED"
+	CodeInternal          Code = "INTERNAL"
+	CodeDuplicateReplayOK Code = "IDEMPOTENT_REPLAY"
 )
 
 // Error is a typed A2A error suitable for transport mapping.

@@ -2,14 +2,14 @@
 //
 // The scheme mirrors the A2A envelope:
 //
-//   string_to_sign = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + sha256_hex(BODY)
-//   signature     = hex_hmac_sha256(secret, string_to_sign)
+//	string_to_sign = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + sha256_hex(BODY)
+//	signature     = hex_hmac_sha256(secret, string_to_sign)
 //
 // Headers expected on every A2A request (besides Content-Type):
 //
-//   X-Agent-Id:        agent_miner_01
-//   X-Agent-Timestamp: 1713532588          (unix seconds)
-//   X-Agent-Signature: <hex digest>
+//	X-Agent-Id:        agent_miner_01
+//	X-Agent-Timestamp: 1713532588          (unix seconds)
+//	X-Agent-Signature: <hex digest>
 //
 // The signed timestamp is also checked against MaxClockSkew (5 minutes) to
 // prevent replay. Admin endpoints (POST /v1/agents) still require the shared

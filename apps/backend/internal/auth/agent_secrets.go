@@ -11,7 +11,7 @@ import (
 // In MVP we read from the environment so the secrets stay out of the
 // database (the agent table doesn't carry a secret column). The format is:
 //
-//   ECOMATRIX_AGENT_SECRETS="agent_miner_01=s3cret-a,agent_merchant_01=s3cret-b"
+//	ECOMATRIX_AGENT_SECRETS="agent_miner_01=s3cret-a,agent_merchant_01=s3cret-b"
 //
 // If an agent doesn't have a secret configured, RequireAgentSignature
 // returns ErrMissingHeaders (callers fall back to admin-token auth if

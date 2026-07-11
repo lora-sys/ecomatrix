@@ -11,26 +11,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ecomatrix/backend/internal/auth"
 	"github.com/ecomatrix/backend/internal/domain"
 	"github.com/ecomatrix/backend/internal/repo"
 	"github.com/ecomatrix/backend/internal/service"
 	"github.com/ecomatrix/backend/internal/transport/ws"
-	"github.com/ecomatrix/backend/internal/auth"
 	"github.com/ecomatrix/backend/pkg/a2a"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Server struct {
-	App     *fiber.App
-	Agents  *repo.AgentRepo
-	Txs     *repo.TxRepo
-	Feed    *repo.FeedRepo
-	Trade   *service.TradeService
-	Metrics *service.MetricsService
-	Hub     *ws.Hub
-	Log     *slog.Logger
-	Admin   string
+	App       *fiber.App
+	Agents    *repo.AgentRepo
+	Txs       *repo.TxRepo
+	Feed      *repo.FeedRepo
+	Trade     *service.TradeService
+	Metrics   *service.MetricsService
+	Hub       *ws.Hub
+	Log       *slog.Logger
+	Admin     string
 	DB        *sql.DB
 	CORS      corsConfig
 	AuthStore *auth.AgentSecretStore

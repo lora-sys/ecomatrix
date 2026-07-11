@@ -114,6 +114,14 @@ sha256(BODY)` canonical form. 5-minute replay window.
 
 [0.3.7]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.6...v0.3.7
 
+## [0.3.8] — 2026-07-11 — CI workflow updated
+
+### Changed
+- `.github/workflows/ci.yml`: 4 jobs (`backend`, `agent`, `frontend`, `e2e`) replacing the stale 3-job setup. Backend uses `go test -race`; agent uses `uv run pytest`; frontend uses `npm ci` + `tsc` + `next build`; e2e boots backend + Next.js and runs Playwright.
+- `apps/backend/`: `gofmt -s -w` applied to 5 files the linter had flagged.
+
+[0.3.8]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.7...v0.3.8
+
 ## [Unreleased]
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded

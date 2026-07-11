@@ -6,8 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-
-
 // RequireAgentSignature returns a Fiber middleware that verifies an HMAC
 // signature on every state-mutating A2A request. GETs are not gated (they
 // are read-only and the dashboard polls them).
@@ -49,8 +47,8 @@ func RequireAgentSignature(store *AgentSecretStore) fiber.Handler {
 
 		if err := Verify(secret, agentID, ts, sig, c.Method(), c.Path(), body); err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":   err.Error(),
-				"code":    "HMAC_INVALID",
+				"error": err.Error(),
+				"code":  "HMAC_INVALID",
 			})
 		}
 
