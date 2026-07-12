@@ -34,7 +34,7 @@ func testDB(t *testing.T) *gorm.DB {
 
 func wipe(t *testing.T, db *gorm.DB) {
 	t.Helper()
-	require.NoError(t, db.Exec("TRUNCATE transactions, agents RESTART IDENTITY CASCADE").Error)
+	require.NoError(t, db.Exec("TRUNCATE transactions, social_feeds, agents, conversations, llm_cache RESTART IDENTITY CASCADE").Error)
 }
 
 func seedAgents(t *testing.T, db *gorm.DB) (sender, target *domain.Agent) {

@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type TxStatus string
 
@@ -25,17 +27,25 @@ type Transaction struct {
 	CreatedAt    time.Time
 }
 
-// Receipt is the success response returned by the trade service.
-type Receipt struct {
-	TxID         string `json:"tx_id"`
-	From         string `json:"from"`
-	To           string `json:"to"`
-	Amount       int64  `json:"amount"`
-	CurrencyType string `json:"currency_type"`
-	BalanceAfter struct {
-		From int64 `json:"from"`
-		To   int64 `json:"to"`
-	} `json:"balance_after"`
+// Conversation is one entry in an agent's LLM interaction log.
+type Conversation struct {
+	ID         int64     `json:"id"`
+	AgentID    string    `json:"agent_id"`
+	Role       string    `json:"role"` // user | assistant | tool | system | error
+	Content    string    `json:"content"`
+	ToolName   string    `json:"tool_name"`
+	ToolInput  []byte    `json:"tool_input"`
+	ToolOutput []byte    `json:"tool_output"`
+	ErrorCode  string    `json:"error_code"`
+	LatencyMS  int       `json:"latency_ms"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// LLMCacheStats summarises cache health for the dashboard.
+type LLMCacheStats struct {
+	TotalEntries   int64 `json:"total_entries"`
+	ExpiredEntries int64 `json:"expired_entries"`
+	AvgHitCount    int64 `json:"avg_hit_count"`
 }
 
 // FeedPost is an entry in the agent social square.
@@ -45,4 +55,17 @@ type FeedPost struct {
 	Content    string
 	IntentType string
 	CreatedAt  time.Time
+}
+
+// Receipt is what the trade service returns to the transport layer.
+type Receipt struct {
+	TxID         string
+	From         string
+	To           string
+	Amount       int64
+	CurrencyType string
+	BalanceAfter struct {
+		From int64
+		To   int64
+	} `json:"balance_after"`
 }

@@ -56,3 +56,20 @@ export interface MetricsHistory {
   count: number;
   samples: MetricsHistorySample[];
 }
+
+export interface ConversationEntry {
+  id: number;
+  agent_id: string;
+  role: "user" | "assistant" | "tool" | "system" | "error";
+  content: string;
+  tool_name?: string;
+  error_code?: string;
+  latency_ms?: number;
+  created_at: string;
+}
+
+export interface LLMCacheStats {
+  total_entries: number;
+  expired_entries: number;
+  avg_hit_count: number;
+}

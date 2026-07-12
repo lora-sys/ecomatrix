@@ -44,6 +44,8 @@ func main() {
 	agents := repo.NewAgentRepo(db)
 	txs := repo.NewTxRepo(db)
 	feed := repo.NewFeedRepo(db)
+	conversations := repo.NewConversationsRepo(db)
+	llmCache := repo.NewLLMCacheRepo(db)
 	metrics := service.NewMetricsService(db, agents, txs)
 	secrets := auth.NewAgentSecretStoreFromEnv()
 	rateLimit := auth.NewRateLimiter(30, 5) // burst 30, refill 5/sec per (agent,action)
@@ -60,6 +62,7 @@ func main() {
 	srv := &httpx.Server{
 		App: app, Agents: agents, Txs: txs, Feed: feed, Trade: trade, Metrics: metrics, Hub: hub,
 		Log: log, Admin: cfg.AdminToken, DB: sqlDB, CORS: corsCfg, AuthStore: secrets, RateLimit: rateLimit,
+		Conversations: conversations, LLMCache: llmCache,
 	}
 	srv.Register()
 

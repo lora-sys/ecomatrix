@@ -1,4 +1,4 @@
-import { Agent, MetricsHistory, MetricsSnapshot, Transaction } from "./types";
+import { Agent, ConversationEntry, LLMCacheStats, MetricsHistory, MetricsSnapshot, Transaction } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
@@ -46,4 +46,18 @@ export async function fetchMetricsHistory(): Promise<MetricsHistory> {
   const r = await fetch(`${BASE}/v1/metrics/history`, { cache: "no-store" });
   if (!r.ok) throw new Error(`history: ${r.status}`);
   return (await r.json()) as MetricsHistory;
+}
+
+export async function fetchConversations(agentId: string, limit = 20): Promise<ConversationEntry[]> {
+  const r = await fetch(`${BASE}/v1/agents/by-string-id/${agentId}/conversations?limit=${limit}`, {
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error(`conversations: ${r.status}`);
+  return ((await r.json()) as { conversations: ConversationEntry[] }).conversations;
+}
+
+export async function fetchLLMCacheStats(): Promise<LLMCacheStats> {
+  const r = await fetch(`${BASE}/v1/llm-cache/stats`, { cache: "no-store" });
+  if (!r.ok) throw new Error(`llm-cache: ${r.status}`);
+  return (await r.json()) as LLMCacheStats;
 }

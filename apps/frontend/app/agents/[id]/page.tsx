@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fetchAgent, fetchTransactions, fetchAgents, fetchLongTermMemory } from "../../../lib/api";
 import { notFound } from "next/navigation";
 import { GlowingCard } from "../../../components/glowing-card";
+import { AIThoughtTrace } from "../../../components/ai-thought-trace";
 import { TracingBeam } from "../../../components/tracing-beam";
 import { LiveProvider } from "../../../components/live-provider";
 
@@ -58,6 +59,9 @@ export default async function AgentDetail({
             </dl>
           </GlowingCard>
           <div className="lg:col-span-2">
+            <GlowingCard label="AI 思考链路 · LLM Trace" tone="cyan">
+              <AIThoughtTrace agentId={id} />
+            </GlowingCard>
             <GlowingCard label="长期记忆 · LTM" tone="violet">
               {ltm.summary ? (
                 <p className="mb-2 text-sm text-ink">{ltm.summary}</p>

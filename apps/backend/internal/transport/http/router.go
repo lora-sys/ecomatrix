@@ -31,10 +31,12 @@ type Server struct {
 	Hub       *ws.Hub
 	Log       *slog.Logger
 	Admin     string
-	DB        *sql.DB
-	CORS      corsConfig
-	AuthStore auth.AgentSecretStore
-	RateLimit *auth.RateLimiter
+	DB            *sql.DB
+	CORS          corsConfig
+	AuthStore     auth.AgentSecretStore
+	RateLimit     *auth.RateLimiter
+	Conversations *repo.ConversationsRepo
+	LLMCache      *repo.LLMCacheRepo
 }
 
 type corsConfig struct {
@@ -57,6 +59,7 @@ func (s *Server) Register() {
 	// Order matters: more specific route first.
 	v1.Get("/agents/by-string-id/:sid", s.getAgentByStringID)
 	v1.Get("/agents/by-string-id/:sid/long-term-memory", s.getAgentLTM)
+	v1.Get("/agents/by-string-id/:sid/conversations", s.getAgentConversations)
 	v1.Put("/agents/by-string-id/:sid/long-term-memory", s.putAgentLTM)
 	v1.Get("/agents/:id", s.getAgent)
 	v1.Post("/agents", s.requireAdmin, s.createAgent)
@@ -66,6 +69,7 @@ func (s *Server) Register() {
 	v1.Post("/feeds", s.rateLimit("POST_FEED"), s.postFeed)
 	v1.Get("/metrics", s.getMetrics)
 	v1.Get("/metrics/history", s.getMetricsHistory)
+	v1.Get("/llm-cache/stats", s.getLLMCacheStats)
 }
 
 // ---------- middleware ----------
@@ -244,6 +248,25 @@ func (s *Server) putAgentLTM(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"string_id": sid, "long_term_memory": ltm})
 }
 
+func (s *Server) getAgentConversations(c *fiber.Ctx) error {
+	sid := c.Params("sid")
+	if sid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "sid is required")
+	}
+	if _, err := s.Agents.ByStringID(c.Context(), sid); err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	convs, err := s.Conversations.Recent(c.Context(), sid, limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"conversations": convs})
+}
+
 func (s *Server) getAgent(c *fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -328,6 +351,10 @@ func (s *Server) postTrade(c *fiber.Ctx) error {
 	})
 }
 
+func (s *Server) LLMCacheStats(ctx context.Context) (interface{}, error) {
+	return s.LLMCache.Stats(ctx)
+}
+
 func (s *Server) rateLimit(action string) fiber.Handler {
 	actionVal := a2a.Action(action)
 	return func(c *fiber.Ctx) error {
@@ -371,6 +398,16 @@ func (s *Server) getMetricsHistory(c *fiber.Ctx) error {
 		"count":          len(history),
 		"samples":        history,
 	})
+}
+
+func (s *Server) getLLMCacheStats(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(c.Context(), 2*time.Second)
+	defer cancel()
+	stats, err := s.LLMCacheStats(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(stats)
 }
 
 func (s *Server) listFeeds(c *fiber.Ctx) error {
