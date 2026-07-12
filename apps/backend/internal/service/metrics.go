@@ -124,5 +124,92 @@ func (m *MetricsService) Collect(ctx context.Context, wsConns int) (Snapshot, er
 	if lastNS > 0 {
 		snap.LastTradeAt = time.Unix(0, lastNS).UTC().Format(time.RFC3339Nano)
 	}
+	// Count settled trades in the last 60s and record the snapshot.
+	since := time.Now().Add(-60 * time.Second)
+	tc, _ := m.TradeCountInWindow(ctx, since)
+	recordHistorySample(snap, tc)
 	return snap, nil
+}
+
+// HistorySample is one snapshot of the world's metrics at a given moment.
+type HistorySample struct {
+	At         time.Time `json:"at"`
+	AgentCount int       `json:"agent_count"`
+	TotalGold  int64     `json:"total_gold"`
+	RecentQPS  float64   `json:"recent_qps"`
+	TradeCount int       `json:"trade_count"` // count of settled trades in this sample window
+}
+
+// History keeps a ring buffer of the last `HistoryCapacity` snapshots.
+const HistoryCapacity = 120 // ~ 2 minutes at 1s cadence
+
+// historyMu guards the history ring. Sample cadence is 1s.
+var (
+	historyMu  sync.Mutex
+	history    = make([]HistorySample, 0, HistoryCapacity)
+	historyCh  = make(chan struct{}, 1)
+)
+
+// History returns a copy of the ring buffer in chronological order (oldest
+// first). The slice is always <= HistoryCapacity in length.
+func (m *MetricsService) History() []HistorySample {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	out := make([]HistorySample, len(history))
+	copy(out, history)
+	return out
+}
+
+// recordHistorySample is called from the main Collect path; it appends a
+// new sample to the ring buffer.
+func recordHistorySample(snap Snapshot, tradeCount int) {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	sample := HistorySample{
+		At:         time.Now().UTC(),
+		AgentCount: snap.AgentCount,
+		TotalGold:  snap.TotalGold,
+		RecentQPS:  snap.RecentQPS,
+		TradeCount: tradeCount,
+	}
+	if len(history) >= HistoryCapacity {
+		// Drop the oldest.
+		history = history[1:]
+	}
+	history = append(history, sample)
+	// Non-blocking notify (so a test could await the next sample).
+	select {
+	case historyCh <- struct{}{}:
+	default:
+	}
+}
+
+// TradeCountInWindow counts settled trades whose created_at >= since.
+func (m *MetricsService) TradeCountInWindow(ctx context.Context, since time.Time) (int, error) {
+	var n int64
+	err := m.db.WithContext(ctx).
+		Raw(`SELECT COUNT(*) FROM transactions WHERE status = 'SETTLED' AND created_at >= ?`, since).
+		Scan(&n).Error
+	return int(n), err
+}
+
+// StartHistoryTicker launches a goroutine that records a history sample
+// every `interval`. Call cancel() to stop. Safe to call once at boot.
+func (m *MetricsService) StartHistoryTicker(interval time.Duration) (cancel func()) {
+	stop := make(chan struct{})
+	go func() {
+		t := time.NewTicker(interval)
+		defer t.Stop()
+		for {
+			select {
+			case <-stop:
+				return
+			case <-t.C:
+				ctx, c := context.WithTimeout(context.Background(), 2*time.Second)
+				_, _ = m.Collect(ctx, 0) // records a sample as a side effect
+				c()
+			}
+		}
+	}()
+	return func() { close(stop) }
 }

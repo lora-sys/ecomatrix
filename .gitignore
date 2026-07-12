@@ -52,3 +52,9 @@ apps/agent/.ruff_cache/
 # Backend
 apps/backend/bin/
 .demo-logs/
+apps/agent/ecomatrix/**/__pycache__/
+apps/frontend/e2e/demo-video.spec.ts
+apps/frontend/e2e/final-video.spec.ts
+apps/frontend/playwright.video.config.ts
+apps/frontend/playwright.final.config.ts
+apps/frontend/tsconfig.tsbuildinfo

@@ -19,10 +19,10 @@ import (
 //     401.
 //   - If everything checks out, the parsed X-Agent-Id is stored in c.Locals
 //     for downstream handlers.
-func RequireAgentSignature(store *AgentSecretStore) fiber.Handler {
+func RequireAgentSignature(store AgentSecretStore) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Short-circuit when nothing is configured (dev mode).
-		if store == nil || len(store.byAgent) == 0 {
+		if store == nil || !store.IsConfigured() {
 			return c.Next()
 		}
 		agentID := c.Get(HeaderAgentId)

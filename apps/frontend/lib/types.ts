@@ -41,3 +41,18 @@ export type StreamEvent =
   | { type: "trade.idempotent_replay"; tx_id: string }
   | { type: "agent.heartbeat"; alive?: number }
   | { type: string; [k: string]: unknown };
+
+export interface MetricsHistorySample {
+  at: string;
+  agent_count: number;
+  total_gold: number;
+  recent_qps: number;
+  trade_count: number;
+}
+
+export interface MetricsHistory {
+  window_seconds: number;
+  capacity: number;
+  count: number;
+  samples: MetricsHistorySample[];
+}

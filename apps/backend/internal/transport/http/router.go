@@ -33,7 +33,7 @@ type Server struct {
 	Admin     string
 	DB        *sql.DB
 	CORS      corsConfig
-	AuthStore *auth.AgentSecretStore
+	AuthStore auth.AgentSecretStore
 	RateLimit *auth.RateLimiter
 }
 
@@ -65,6 +65,7 @@ func (s *Server) Register() {
 	v1.Get("/feeds", s.listFeeds)
 	v1.Post("/feeds", s.rateLimit("POST_FEED"), s.postFeed)
 	v1.Get("/metrics", s.getMetrics)
+	v1.Get("/metrics/history", s.getMetricsHistory)
 }
 
 // ---------- middleware ----------
@@ -360,6 +361,16 @@ func (s *Server) getMetrics(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(snap)
+}
+
+func (s *Server) getMetricsHistory(c *fiber.Ctx) error {
+	history := s.Metrics.History()
+	return c.JSON(fiber.Map{
+		"window_seconds": 60,
+		"capacity":       120,
+		"count":          len(history),
+		"samples":        history,
+	})
 }
 
 func (s *Server) listFeeds(c *fiber.Ctx) error {

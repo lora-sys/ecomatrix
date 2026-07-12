@@ -1,0 +1,14 @@
+{
+  "agent_count": 13,
+  "total_gold": 2560,
+  "jobs_breakdown": {
+    "hacker": 2,
+    "mediator": 1,
+    "merchant": 4,
+    "miner": 6
+  },
+  "recent_qps": 15,
+  "ws_connections": 0,
+  "last_trade_at": "2026-07-12T05:19:36.654100507Z",
+  "generated_at": "2026-07-12T05:19:50.45820364Z"
+}

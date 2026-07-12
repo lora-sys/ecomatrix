@@ -5,6 +5,8 @@ import { useStore } from "../hooks/store";
 import { KPITile } from "../components/kpi-tile";
 import { GlowingCard } from "../components/glowing-card";
 import { WealthChart } from "../components/wealth-chart";
+import { WealthHistory } from "../components/wealth-history";
+import { TradeVolumeChart } from "../components/trade-volume-chart";
 import { TradeFeed } from "../components/trade-feed";
 import { SocialFeed } from "../components/social-feed";
 import { ThreeDCard } from "../components/three-d-card";
@@ -50,14 +52,20 @@ export function DashboardClient({ initialAgents, initialMetrics }: { initialAgen
 
         {/* Body: wealth + feeds + agents */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 space-y-4">
             <GlowingCard label="财富分布 · TOP 12" tone="gold">
               <WealthChart agents={initialAgents} />
             </GlowingCard>
+            <GlowingCard label="全网 GOLD · 历史 2 分钟" tone="gold">
+              <WealthHistory />
+            </GlowingCard>
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 space-y-4">
             <GlowingCard label="赛博交易广播" tone="cyan">
               <TradeFeed />
+            </GlowingCard>
+            <GlowingCard label="交易量 · 1 秒桶" tone="cyan">
+              <TradeVolumeChart />
             </GlowingCard>
           </div>
           <div className="lg:col-span-4">

@@ -48,6 +48,8 @@ func main() {
 	secrets := auth.NewAgentSecretStoreFromEnv()
 	rateLimit := auth.NewRateLimiter(30, 5) // burst 30, refill 5/sec per (agent,action)
 	trade := service.NewTradeService(db, agents, txs, hub, metrics)
+	historyStop := metrics.StartHistoryTicker(1 * time.Second)
+	defer historyStop()
 
 	app := fiber.New(fiber.Config{
 		AppName:               "ecomatrix-backend",

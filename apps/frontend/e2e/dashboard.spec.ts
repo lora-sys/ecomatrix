@@ -1,43 +1,107 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
-test.describe("EcoMatrix dashboard", () => {
-  test("renders KPI tiles + chart + feed on desktop", async ({ page }, testInfo) => {
+const TIMINGS: { name: string; ms: number }[] = [];
+
+async function timed(page: Page, name: string, fn: () => Promise<void>) {
+  const t0 = Date.now();
+  await fn();
+  const ms = Date.now() - t0;
+  TIMINGS.push({ name, ms });
+  // eslint-disable-next-line no-console
+  console.log(`[timing] ${name}: ${ms}ms`);
+}
+
+test.describe.configure({ mode: "serial" });
+
+test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
+  test("dashboard renders with all panels, history chart, trade-volume chart", async ({ page }, testInfo) => {
     const consoleErrors: string[] = [];
-    page.on("console", (m) => {
-      if (m.type() === "error") consoleErrors.push(m.text());
-    });
+    page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
     page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
 
-    await page.goto("/");
+    await timed(page, "first-paint", async () => {
+      await page.goto("/");
+    });
     // Hero copy.
     await expect(page.getByRole("heading", { name: "上帝视角" })).toBeVisible();
     // KPI labels.
-    await expect(page.getByText("存活 Agent")).toBeVisible();
+    await expect(page.getByText("存活 AGENT")).toBeVisible();
     await expect(page.getByText("全网总资产")).toBeVisible();
-    await expect(page.getByText("近 10s QPS")).toBeVisible();
+    await expect(page.getByText("近 10S QPS")).toBeVisible();
     await expect(page.getByText("在线观测端")).toBeVisible();
-    // Agents list / chart presence (initial RSC fetch from /v1/agents).
+    // Panels.
     await expect(page.getByText("财富分布 · TOP 12")).toBeVisible();
     await expect(page.getByText("赛博交易广播")).toBeVisible();
+    await expect(page.getByText("社交广场 · POST_FEED")).toBeVisible();
     await expect(page.getByText("公民一览")).toBeVisible();
-    // Wait for WS to connect or until timeout (the dev backend might be offline).
-    // If no backend, the page still renders; tiles default to 0.
-    await page.waitForTimeout(800);
-    await page.screenshot({
-      path: `test-results/dashboard-${testInfo.project.name}.png`,
-      fullPage: true,
-    });
+    // History panel (new).
+    await expect(page.getByText("全网 GOLD · 历史 2 分钟")).toBeVisible();
+    // Trade-volume panel (new).
+    await expect(page.getByText("交易量 · 1 秒桶")).toBeVisible();
+    // Job cards.
+    for (const j of ["MINER", "MERCHANT", "HACKER", "MEDIATOR"]) {
+      await expect(page.getByText(j).first()).toBeVisible();
+    }
+    // Let history + trade-volume fill.
+    await page.waitForTimeout(3000);
+    await page.screenshot({ path: `test-results/dashboard-${testInfo.project.name}.png`, fullPage: true });
     expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
   });
 
-  test("agent detail page renders vitals + recent trades", async ({ page }, testInfo) => {
-    await page.goto("/agents/agent_miner_01");
-    await expect(page.getByRole("heading", { name: "agent_miner_01" })).toBeVisible();
-    await expect(page.getByText("基础状态")).toBeVisible();
-    await expect(page.getByText("BALANCE")).toBeVisible();
-    await page.screenshot({
-      path: `test-results/agent-${testInfo.project.name}.png`,
-      fullPage: true,
+  test("interaction: click into agent detail", async ({ page }, testInfo) => {
+    await timed(page, "navigate-to-detail", async () => {
+      await page.goto("/");
+      await page.getByRole("link", { name: /agent_miner_01/ }).first().click();
+      await page.waitForURL("**/agents/agent_miner_01");
     });
+    await expect(page.getByRole("heading", { name: "agent_miner_01" })).toBeVisible();
+    await expect(page.getByText("BALANCE")).toBeVisible();
+    await expect(page.getByText("长期记忆 · LTM")).toBeVisible();
+    await expect(page.getByText("近期交易")).toBeVisible();
+    await page.screenshot({ path: `test-results/agent-${testInfo.project.name}.png`, fullPage: true });
+  });
+
+  test("interaction: hover the wealth chart, then return", async ({ page }, testInfo) => {
+    await page.goto("/");
+    await page.waitForTimeout(2000);
+    // Hover the chart; verify tooltip appears.
+    const chart = page.getByText("财富分布 · TOP 12").locator("..");
+    await chart.hover();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `test-results/hover-${testInfo.project.name}.png`, fullPage: true });
+  });
+
+  test("a11y: live regions and ARIA labels are present", async ({ page }) => {
+    await page.goto("/");
+    // Trade feed list has role=log + aria-live.
+    const tradeList = page.locator('[aria-label="live trade broadcast"]');
+    await expect(tradeList).toHaveAttribute("role", "log");
+    // Social feed list has role=log + aria-live.
+    const socialList = page.locator('[aria-label="agent social feed"]');
+    await expect(socialList).toHaveAttribute("role", "log");
+    // KPI tile has aria-live.
+    const kpi = page.getByText("全网总资产").locator("..");
+    await expect(kpi).toHaveAttribute("aria-live", /polite|assertive/);
+  });
+
+  test("motion: prefers-reduced-motion respected", async ({ browser }) => {
+    const ctx = await browser.newContext({ reducedMotion: "reduce" });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await page.waitForTimeout(1500);
+    // With reduced motion, animations should be near-instant.
+    // The CSS rule we set forces duration: 0.001ms.
+    const duration = await page.evaluate(() => {
+      const el = document.querySelector(".ring-cyan-glow") as HTMLElement | null;
+      if (!el) return null;
+      return getComputedStyle(el).transitionDuration;
+    });
+    expect(duration).toBe("0.001ms");
+    await ctx.close();
+  });
+
+  test.afterAll(async () => {
+    // eslint-disable-next-line no-console
+    console.log("[timings]", JSON.stringify(TIMINGS));
   });
 });

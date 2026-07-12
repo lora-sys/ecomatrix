@@ -1,4 +1,4 @@
-import { Agent, MetricsSnapshot, Transaction } from "./types";
+import { Agent, MetricsHistory, MetricsSnapshot, Transaction } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
@@ -40,4 +40,10 @@ export async function fetchLongTermMemory(id: string): Promise<LongTermMemory> {
   if (!r.ok) throw new Error(`ltm: ${r.status}`);
   const d = await r.json();
   return d.long_term_memory as LongTermMemory;
+}
+
+export async function fetchMetricsHistory(): Promise<MetricsHistory> {
+  const r = await fetch(`${BASE}/v1/metrics/history`, { cache: "no-store" });
+  if (!r.ok) throw new Error(`history: ${r.status}`);
+  return (await r.json()) as MetricsHistory;
 }

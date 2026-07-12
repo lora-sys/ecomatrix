@@ -6,24 +6,25 @@ import (
 	"sync"
 )
 
-// AgentSecretStore maps agent string_id -> shared HMAC secret.
-//
-// In MVP we read from the environment so the secrets stay out of the
-// database (the agent table doesn't carry a secret column). The format is:
-//
-//	ECOMATRIX_AGENT_SECRETS="agent_miner_01=s3cret-a,agent_merchant_01=s3cret-b"
-//
-// If an agent doesn't have a secret configured, RequireAgentSignature
-// returns ErrMissingHeaders (callers fall back to admin-token auth if
-// configured to do so).
-type AgentSecretStore struct {
+// AgentSecretStore is the contract for HMAC secret lookup. Both the
+// env-backed and DB-backed implementations satisfy it.
+type AgentSecretStore interface {
+	SecretFor(agentID string) ([]byte, bool)
+	// IsConfigured reports whether the store has at least one secret known.
+	// In dev mode (no env, empty DB), this returns false and the middleware
+	// becomes a no-op so the dashboard still works without HMAC.
+	IsConfigured() bool
+}
+
+// EnvAgentSecretStore keeps secrets in process memory, sourced from env.
+type EnvAgentSecretStore struct {
 	mu      sync.RWMutex
 	byAgent map[string][]byte
 }
 
-func NewAgentSecretStoreFromEnv() *AgentSecretStore {
+func NewAgentSecretStoreFromEnv() *EnvAgentSecretStore {
 	raw := os.Getenv("ECOMATRIX_AGENT_SECRETS")
-	s := &AgentSecretStore{byAgent: map[string][]byte{}}
+	s := &EnvAgentSecretStore{byAgent: map[string][]byte{}}
 	if raw == "" {
 		return s
 	}
@@ -45,16 +46,25 @@ func NewAgentSecretStoreFromEnv() *AgentSecretStore {
 	return s
 }
 
-func (s *AgentSecretStore) SecretFor(agentID string) ([]byte, bool) {
+func (s *EnvAgentSecretStore) SecretFor(agentID string) ([]byte, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	secret, ok := s.byAgent[agentID]
 	return secret, ok
 }
 
-// SetSecret is a test/seed helper.
-func (s *AgentSecretStore) SetSecret(agentID string, secret []byte) {
+func (s *EnvAgentSecretStore) IsConfigured() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.byAgent) > 0
+}
+
+func (s *EnvAgentSecretStore) SetSecret(agentID string, secret []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.byAgent[agentID] = secret
 }
+
+// Compile-time check.
+var _ AgentSecretStore = (*EnvAgentSecretStore)(nil)
+var _ AgentSecretStore = (*AgentSecretStoreDB)(nil)
