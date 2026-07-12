@@ -4,6 +4,7 @@ package http
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"os"
 	"log/slog"
@@ -37,6 +38,7 @@ type Server struct {
 	RateLimit     *auth.RateLimiter
 	Conversations *repo.ConversationsRepo
 	LLMCache      *repo.LLMCacheRepo
+	Traces        *repo.TracesRepo
 }
 
 type corsConfig struct {
@@ -70,6 +72,8 @@ func (s *Server) Register() {
 	v1.Get("/metrics", s.getMetrics)
 	v1.Get("/metrics/history", s.getMetricsHistory)
 	v1.Get("/llm-cache/stats", s.getLLMCacheStats)
+	v1.Post("/traces", s.postTrace)
+	v1.Get("/agents/by-string-id/:sid/traces", s.getAgentTraces)
 }
 
 // ---------- middleware ----------
@@ -246,6 +250,25 @@ func (s *Server) putAgentLTM(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(fiber.Map{"string_id": sid, "long_term_memory": ltm})
+}
+
+func (s *Server) getAgentTraces(c *fiber.Ctx) error {
+	sid := c.Params("sid")
+	if sid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "sid is required")
+	}
+	if _, err := s.Agents.ByStringID(c.Context(), sid); err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "50"))
+	traces, err := s.Traces.Recent(c.Context(), sid, limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"traces": traces})
 }
 
 func (s *Server) getAgentConversations(c *fiber.Ctx) error {
@@ -585,4 +608,56 @@ func CORSConfigFromConfig() corsConfig {
 		AllowedOrigins: loadCORSOrigins(),
 		DevMode:        dev,
 	}
+}
+
+func (s *Server) postTrace(c *fiber.Ctx) error {
+	if s.Traces == nil {
+		return fiber.NewError(fiber.StatusServiceUnavailable, "tracing not configured")
+	}
+	var body struct {
+		AgentID   string                 `json:"agent_id"`
+		Kind      string                 `json:"kind"`
+		Content   string                 `json:"content"`
+		LatencyMS *int                   `json:"latency_ms,omitempty"`
+		TokensIn  *int                   `json:"tokens_in,omitempty"`
+		TokensOut *int                   `json:"tokens_out,omitempty"`
+		ToolName  string                 `json:"tool_name"`
+		ToolInput  json.RawMessage        `json:"tool_input,omitempty"`
+		ToolOutput json.RawMessage        `json:"tool_output,omitempty"`
+		CostUSD   *float64               `json:"cost_usd,omitempty"`
+		ErrorCode string                 `json:"error_code"`
+		ParentID  *int64                 `json:"parent_id,omitempty"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid json")
+	}
+	if body.AgentID == "" || body.Kind == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "agent_id and kind required")
+	}
+	// Verify agent exists.
+	if _, err := s.Agents.ByStringID(c.Context(), body.AgentID); err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "agent not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	t := domain.Trace{
+		AgentID:   body.AgentID,
+		Kind:      body.Kind,
+		Content:   body.Content,
+		LatencyMS: body.LatencyMS,
+		TokensIn:  body.TokensIn,
+		TokensOut: body.TokensOut,
+		ToolName:  body.ToolName,
+		ToolInput:  body.ToolInput,
+		ToolOutput: body.ToolOutput,
+		CostUSD:   body.CostUSD,
+		ErrorCode: body.ErrorCode,
+		ParentID:  body.ParentID,
+	}
+	inserted, err := s.Traces.Insert(c.Context(), t)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.Status(fiber.StatusCreated).JSON(inserted)
 }

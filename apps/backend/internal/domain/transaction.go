@@ -69,3 +69,21 @@ type Receipt struct {
 		To   int64
 	} `json:"balance_after"`
 }
+
+// Trace is one observability event: a plan, decision, tool call, or error.
+type Trace struct {
+	ID         int64     `json:"id"`
+	AgentID    string    `json:"agent_id"`
+	Kind       string    `json:"kind"` // plan | decision | tool_call | tool_result | error | observation | reflection
+	Content    string    `json:"content"`
+	LatencyMS  *int      `json:"latency_ms,omitempty"`
+	TokensIn   *int      `json:"tokens_in,omitempty"`
+	TokensOut  *int      `json:"tokens_out,omitempty"`
+	ToolName   string    `json:"tool_name"`
+	ToolInput  []byte    `json:"tool_input,omitempty"`
+	ToolOutput []byte    `json:"tool_output,omitempty"`
+	CostUSD    *float64  `json:"cost_usd,omitempty"`
+	ErrorCode  string    `json:"error_code"`
+	ParentID   *int64    `json:"parent_id,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
+}

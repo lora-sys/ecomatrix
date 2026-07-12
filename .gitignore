@@ -58,3 +58,4 @@ apps/frontend/e2e/final-video.spec.ts
 apps/frontend/playwright.video.config.ts
 apps/frontend/playwright.final.config.ts
 apps/frontend/tsconfig.tsbuildinfo
+**/__pycache__/

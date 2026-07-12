@@ -114,3 +114,37 @@ class PostgresLongTermMemory:
 
 # Back-compat alias: older code imports `LongTermMemory`.
 LongTermMemory = FileLongTermMemory
+
+
+# === Memory compression (Phase 6 P5) =========================================
+
+
+def summarize_short_term(short, *, llm=None) -> str:
+    """Compress the short-term observation list into a single paragraph.
+
+    Per the design spec: don't store everything; only future-useful info.
+    With an LLM, ask it to summarize. Without an LLM, do a heuristic
+    compression: dedupe + keep the most recent N.
+    """
+    if not short.observations:
+        return ""
+    if len(short.observations) <= 3:
+        return " | ".join(short.observations)
+    if llm is None:
+        # Heuristic: keep first (initial state) + last 3 (recent).
+        head = short.observations[0]
+        tail = short.observations[-3:]
+        return f"{head} | ... | " + " | ".join(tail)
+    try:
+        text = " | ".join(short.observations[-20:])
+        prompt = (
+            "Summarize the following agent observations in 1-2 sentences. "
+            "Keep only information useful for future decisions.\n\n"
+            f"{text}\n\nSummary:"
+        )
+        return llm.complete(
+            [{"role": "user", "content": prompt}],
+            temperature=0.0,
+        )
+    except Exception:
+        return " | ".join(short.observations[-5:])
