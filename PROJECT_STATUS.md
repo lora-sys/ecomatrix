@@ -55,15 +55,16 @@
 
 | ID | Title | Owner | Status | Notes |
 | -- | ----- | ----- | ------ | ----- |
-| ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Blocked | PR #2 open; first CI run red on baseline gofmt/ESLint gates, recovery fix prepared locally. |
+| ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 green on PR run 29247531327 (agent, backend, frontend, e2e all pass); recovered baseline gofmt/ESLint, backend test DSN, e2e DSN, CORS, dashboard test, and concurrency flake. |
 
 ## Blockers
-- PR #2 CI run `29218912703` is red until the gofmt/ESLint recovery commit is pushed and rerun.
+- (none)
 
 ## Decisions Pending Human Input
 (none)
 
 ## Recent Changes
+- 2026-07-13 — PR run `29247531327` returned all four required CI jobs green; ISS-028 transitions to Done pending PR review.
 - 2026-07-13 — Created private `lora-sys/ecomatrix`, Issue #1, and Draft PR #2; first CI run exposed baseline gofmt and interactive ESLint failures.
 - 2026-07-13 — ISS-028 prepared as a local feature commit; authenticated GitHub account has no matching `ecomatrix` repository, so the board remains in Review.
 - 2026-07-13 — ISS-028 implementation complete locally: 101 Python tests, Go race suite, Ruff, live seeded CLI, and two reviewer passes green; moved to Review pending PR/CI.
