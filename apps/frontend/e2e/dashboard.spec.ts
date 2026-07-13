@@ -73,15 +73,12 @@ test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
 
   test("a11y: live regions and ARIA labels are present", async ({ page }) => {
     await page.goto("/");
-    // The trade/social feeds render the role=log list only when they have at
-    // least one item; allow the background ticker a short window to populate.
-    await page.waitForTimeout(2500);
-    // Trade feed list has role=log + aria-live.
+    // Trade and social feeds always expose a live region container; the inner
+    // <ul role="log"> is only mounted once the backend has at least one item.
     const tradeList = page.locator('[aria-label="live trade broadcast"]');
-    await expect(tradeList).toHaveAttribute("role", "log");
-    // Social feed list has role=log + aria-live.
+    await expect(tradeList).toHaveAttribute("aria-live", "polite");
     const socialList = page.locator('[aria-label="agent social feed"]');
-    await expect(socialList).toHaveAttribute("role", "log");
+    await expect(socialList).toHaveAttribute("aria-live", "polite");
     // KPI tile has aria-live.
     const kpi = page.getByText("全网总资产").locator("..");
     await expect(kpi).toHaveAttribute("aria-live", /polite|assertive/);
