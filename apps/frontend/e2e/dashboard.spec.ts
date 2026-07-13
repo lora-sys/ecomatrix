@@ -97,7 +97,9 @@ test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
       if (!el) return null;
       return getComputedStyle(el).transitionDuration;
     });
-    expect(duration).toBe("0.001ms");
+    // Chromium returns the computed value either as "0.001ms" or the
+    // equivalent "1e-06s" string depending on the version; assert on either.
+    expect(duration).toMatch(/^(0\.001ms|1e-06s)$/);
     await ctx.close();
   });
 
