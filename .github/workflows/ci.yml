@@ -8,6 +8,7 @@ on:
 
 env:
   ECOMATRIX_DB_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable
+  ECOMATRIX_TEST_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable
 
 jobs:
   backend:
