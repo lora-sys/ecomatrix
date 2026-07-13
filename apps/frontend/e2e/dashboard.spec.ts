@@ -38,10 +38,9 @@ test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
     await expect(page.getByText("全网 GOLD · 历史 2 分钟")).toBeVisible();
     // Trade-volume panel (new).
     await expect(page.getByText("交易量 · 1 秒桶")).toBeVisible();
-    // The supervisor log panel mounts inside a client component after first
-    // paint; wait for the live region to appear so the assertion is stable
-    // across SSR / hydration timings.
-    await page.getByLabel("supervisor task log").waitFor({ state: "visible" });
+    // The supervisor panel title is rendered on the server and stays visible
+    // whether the panel has runs or is in its empty state.
+    await expect(page.getByText("Supervisor 任务日志")).toBeVisible();
     // Job cards.
     for (const j of ["MINER", "MERCHANT", "HACKER", "MEDIATOR"]) {
       await expect(page.getByText(j).first()).toBeVisible();
