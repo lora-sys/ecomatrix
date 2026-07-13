@@ -9,12 +9,23 @@ import { WealthHistory } from "../components/wealth-history";
 import { TradeVolumeChart } from "../components/trade-volume-chart";
 import { TradeFeed } from "../components/trade-feed";
 import { SocialFeed } from "../components/social-feed";
+import { SupervisorLog } from "../components/supervisor-log";
 import { ThreeDCard } from "../components/three-d-card";
 import { Agent, MetricsSnapshot } from "../lib/types";
 import { ErrorBanner } from "../components/error-banner";
 import { LiveProvider } from "../components/live-provider";
 
-export function DashboardClient({ initialAgents, initialMetrics }: { initialAgents: Agent[]; initialMetrics: MetricsSnapshot | null }) {
+import type { SupervisorRun } from "../lib/types";
+
+export function DashboardClient({
+  initialAgents,
+  initialMetrics,
+  initialSupervisorRuns = [],
+}: {
+  initialAgents: Agent[];
+  initialMetrics: MetricsSnapshot | null;
+  initialSupervisorRuns?: SupervisorRun[];
+}) {
   const metrics = useStore((s) => s.metrics);
   return (
     <LiveProvider initialMetrics={initialMetrics}>
@@ -90,6 +101,15 @@ export function DashboardClient({ initialAgents, initialMetrics }: { initialAgen
                   </li>
                 ))}
               </ul>
+            </GlowingCard>
+          </div>
+        </section>
+
+        {/* Supervisor log panel */}
+        <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <GlowingCard label="Supervisor 任务日志" tone="violet">
+              <SupervisorLog initialRuns={initialSupervisorRuns} />
             </GlowingCard>
           </div>
         </section>

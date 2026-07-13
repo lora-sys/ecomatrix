@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { StreamEvent } from "../lib/types";
+import { StreamEvent, SupervisorRun } from "../lib/types";
 
 type TradeFeedKind = "settled" | "rejected" | "replay" | "other";
 type SocialIntent = "OFFER" | "REQUEST" | "SOCIAL" | "META";
@@ -34,11 +34,17 @@ interface StoreState {
   };
   feed: TradeFeedItem[];
   social: SocialFeedItem[];
+  supervisorRuns: SupervisorRun[];
+  supervisorLatest: SupervisorRun | null;
+  supervisorHydrated: boolean;
   setConnected: (v: boolean) => void;
   setFetchError: (msg: string | null) => void;
   setMetrics: (m: Partial<StoreState["metrics"]>) => void;
   setSocial: (items: SocialFeedItem[]) => void;
   pushSocial: (item: SocialFeedItem) => void;
+  setSupervisorRuns: (runs: SupervisorRun[]) => void;
+  setSupervisorLatest: (run: SupervisorRun | null) => void;
+  setSupervisorHydrated: (v: boolean) => void;
   applyEvent: (ev: StreamEvent) => void;
 }
 
@@ -55,6 +61,9 @@ export const useStore = create<StoreState>((set) => ({
   },
   feed: [],
   social: [],
+  supervisorRuns: [],
+  supervisorLatest: null,
+  supervisorHydrated: false,
   setConnected: (v) => set({ connected: v }),
   setFetchError: (msg) => set({ fetchError: msg }),
   setMetrics: (m) =>
@@ -67,6 +76,19 @@ export const useStore = create<StoreState>((set) => ({
     })),
   pushSocial: (item) =>
     set((s) => ({ social: dedupeSocial([item, ...s.social]).slice(0, 50) })),
+  setSupervisorRuns: (runs) =>
+    set((s) => {
+      const byId = new Map<number, SupervisorRun>();
+      for (const r of s.supervisorRuns) if (r.id) byId.set(r.id, r);
+      for (const r of runs) if (r.id) byId.set(r.id, r);
+      const merged = Array.from(byId.values())
+        .sort((a, b) => (b.id || 0) - (a.id || 0))
+        .slice(0, 20);
+      return { supervisorRuns: merged, supervisorHydrated: true };
+    }),
+  setSupervisorLatest: (run) =>
+    set({ supervisorLatest: run, supervisorHydrated: true }),
+  setSupervisorHydrated: (v) => set({ supervisorHydrated: v }),
   applyEvent: (ev) =>
     set((s) => {
       const id = `${ev.type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -107,6 +129,18 @@ export const useStore = create<StoreState>((set) => ({
         };
         return {
           social: dedupeSocial([item, ...s.social]).slice(0, 50),
+        };
+      }
+      if (ev.type === "supervisor.run.finished" || ev.type === "supervisor.run.started") {
+        const run = (ev as { run: SupervisorRun }).run;
+        if (!run) return {};
+        return {
+          supervisorLatest: run,
+          supervisorRuns: [
+            run,
+            ...s.supervisorRuns.filter((r) => r.id !== run.id),
+          ].slice(0, 20),
+          supervisorHydrated: true,
         };
       }
       return {};

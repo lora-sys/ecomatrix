@@ -38,6 +38,9 @@ test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
     await expect(page.getByText("全网 GOLD · 历史 2 分钟")).toBeVisible();
     // Trade-volume panel (new).
     await expect(page.getByText("交易量 · 1 秒桶")).toBeVisible();
+    // Supervisor log panel mounts unconditionally so the live region is observable
+    // even when the backend has no prior runs.
+    await expect(page.getByLabel("supervisor task log")).toBeVisible();
     // Job cards.
     for (const j of ["MINER", "MERCHANT", "HACKER", "MEDIATOR"]) {
       await expect(page.getByText(j).first()).toBeVisible();
