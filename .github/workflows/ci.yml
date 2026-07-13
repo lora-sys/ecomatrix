@@ -84,6 +84,8 @@ jobs:
     name: e2e (Playwright)
     runs-on: ubuntu-latest
     needs: [backend, frontend]
+    env:
+      ECOMATRIX_DB_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable
     services:
       postgres:
         image: postgres:16-alpine
