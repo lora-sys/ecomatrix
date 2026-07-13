@@ -55,9 +55,9 @@ test.describe("EcoMatrix dashboard (polish + history + interactions)", () => {
       await page.waitForURL("**/agents/agent_miner_01");
     });
     await expect(page.getByRole("heading", { name: "agent_miner_01" })).toBeVisible();
-    await expect(page.getByText("BALANCE")).toBeVisible();
-    await expect(page.getByText("长期记忆 · LTM")).toBeVisible();
-    await expect(page.getByText("近期交易")).toBeVisible();
+    await expect(page.getByText("BALANCE", { exact: true })).toBeVisible();
+    await expect(page.getByText("长期记忆 · LTM", { exact: true })).toBeVisible();
+    await expect(page.getByText("近期交易", { exact: true })).toBeVisible();
     await page.screenshot({ path: `test-results/agent-${testInfo.project.name}.png`, fullPage: true });
   });
 
