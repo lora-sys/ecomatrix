@@ -52,6 +52,32 @@ Exit criteria: two-agent trade loop runs headlessly; ledger is consistent with s
 
 Exit criteria: dashboard renders ≥ 3 KPIs ticking live; opening an agent shows CoT trace.
 
+### Post-MVP Enhancements — Phase 4–7
+
+- Phase 4: time-series metrics, Postgres-backed HMAC secrets, and final UX evidence.
+- Phase 5: OpenAI-compatible LLM provider, tool calls, conversations, cache, and failure handling.
+- Phase 6: agent contracts, bounded ReAct workflow, traces, cost controls, memory compression, and golden evals.
+- Phase 7: live dashboard and agent-detail demo captures.
+
+These enhancements are shipped in commits `56680b1` through `450262b`; their
+evidence is under `docs/evidence/PHASE-{4-final,5-ai,6-ai,7-ai}/`.
+
+### Phase 8 — Hierarchical Supervisor
+
+**Goal:** replace flat-only orchestration with an optional supervisor that can
+decompose a high-level goal and delegate bounded work to specialized agents.
+
+- Validate a non-empty goal and available worker registry.
+- Ask the configured LLM for at most four well-shaped subtasks.
+- Route each subtask by agent ID or job type and execute it via `run_react`.
+- Aggregate worker receipts and errors into a final summary.
+- Expose the workflow through `--scenario supervisor --goal ...`.
+- Keep existing `two_agent` and `multi` scenarios unchanged.
+- Evidence: full Python tests, touched-file Ruff, and two reviewer reports.
+
+Exit criteria: the supervisor scenario is CLI-reachable, bounded, tolerant of
+malformed/failing LLM responses, and the complete Python test suite is green.
+
 ## Cross-cutting (every phase)
 
 - Adversarial review (≥ 2 reviewers per PR).

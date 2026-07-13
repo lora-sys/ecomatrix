@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"os"
 	"log/slog"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -23,15 +23,15 @@ import (
 )
 
 type Server struct {
-	App       *fiber.App
-	Agents    *repo.AgentRepo
-	Txs       *repo.TxRepo
-	Feed      *repo.FeedRepo
-	Trade     *service.TradeService
-	Metrics   *service.MetricsService
-	Hub       *ws.Hub
-	Log       *slog.Logger
-	Admin     string
+	App           *fiber.App
+	Agents        *repo.AgentRepo
+	Txs           *repo.TxRepo
+	Feed          *repo.FeedRepo
+	Trade         *service.TradeService
+	Metrics       *service.MetricsService
+	Hub           *ws.Hub
+	Log           *slog.Logger
+	Admin         string
 	DB            *sql.DB
 	CORS          corsConfig
 	AuthStore     auth.AgentSecretStore
@@ -39,6 +39,7 @@ type Server struct {
 	Conversations *repo.ConversationsRepo
 	LLMCache      *repo.LLMCacheRepo
 	Traces        *repo.TracesRepo
+	Supervisor    *repo.SupervisorRunsRepo
 }
 
 type corsConfig struct {
@@ -74,6 +75,8 @@ func (s *Server) Register() {
 	v1.Get("/llm-cache/stats", s.getLLMCacheStats)
 	v1.Post("/traces", s.postTrace)
 	v1.Get("/agents/by-string-id/:sid/traces", s.getAgentTraces)
+	v1.Get("/supervisor/runs", s.listSupervisorRuns)
+	v1.Post("/supervisor/runs", s.postSupervisorRun)
 }
 
 // ---------- middleware ----------
@@ -395,8 +398,8 @@ func (s *Server) rateLimit(action string) fiber.Handler {
 		if !s.RateLimit.Allow(sender + "|" + action) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": fiber.Map{
-					"code":     a2a.CodeRateLimited,
-					"message":  "rate limit exceeded",
+					"code":      a2a.CodeRateLimited,
+					"message":   "rate limit exceeded",
 					"retryable": true,
 				},
 			})
@@ -590,8 +593,8 @@ func rateLimitMiddleware(rl *auth.RateLimiter) fiber.Handler {
 		if !rl.Allow(sender + "|" + action) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": fiber.Map{
-					"code":    a2a.CodeRateLimited,
-					"message": "rate limit exceeded",
+					"code":      a2a.CodeRateLimited,
+					"message":   "rate limit exceeded",
 					"retryable": true,
 				},
 			})
@@ -615,18 +618,18 @@ func (s *Server) postTrace(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusServiceUnavailable, "tracing not configured")
 	}
 	var body struct {
-		AgentID   string                 `json:"agent_id"`
-		Kind      string                 `json:"kind"`
-		Content   string                 `json:"content"`
-		LatencyMS *int                   `json:"latency_ms,omitempty"`
-		TokensIn  *int                   `json:"tokens_in,omitempty"`
-		TokensOut *int                   `json:"tokens_out,omitempty"`
-		ToolName  string                 `json:"tool_name"`
-		ToolInput  json.RawMessage        `json:"tool_input,omitempty"`
-		ToolOutput json.RawMessage        `json:"tool_output,omitempty"`
-		CostUSD   *float64               `json:"cost_usd,omitempty"`
-		ErrorCode string                 `json:"error_code"`
-		ParentID  *int64                 `json:"parent_id,omitempty"`
+		AgentID    string          `json:"agent_id"`
+		Kind       string          `json:"kind"`
+		Content    string          `json:"content"`
+		LatencyMS  *int            `json:"latency_ms,omitempty"`
+		TokensIn   *int            `json:"tokens_in,omitempty"`
+		TokensOut  *int            `json:"tokens_out,omitempty"`
+		ToolName   string          `json:"tool_name"`
+		ToolInput  json.RawMessage `json:"tool_input,omitempty"`
+		ToolOutput json.RawMessage `json:"tool_output,omitempty"`
+		CostUSD    *float64        `json:"cost_usd,omitempty"`
+		ErrorCode  string          `json:"error_code"`
+		ParentID   *int64          `json:"parent_id,omitempty"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid json")
@@ -642,22 +645,160 @@ func (s *Server) postTrace(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	t := domain.Trace{
-		AgentID:   body.AgentID,
-		Kind:      body.Kind,
-		Content:   body.Content,
-		LatencyMS: body.LatencyMS,
-		TokensIn:  body.TokensIn,
-		TokensOut: body.TokensOut,
-		ToolName:  body.ToolName,
+		AgentID:    body.AgentID,
+		Kind:       body.Kind,
+		Content:    body.Content,
+		LatencyMS:  body.LatencyMS,
+		TokensIn:   body.TokensIn,
+		TokensOut:  body.TokensOut,
+		ToolName:   body.ToolName,
 		ToolInput:  body.ToolInput,
 		ToolOutput: body.ToolOutput,
-		CostUSD:   body.CostUSD,
-		ErrorCode: body.ErrorCode,
-		ParentID:  body.ParentID,
+		CostUSD:    body.CostUSD,
+		ErrorCode:  body.ErrorCode,
+		ParentID:   body.ParentID,
 	}
 	inserted, err := s.Traces.Insert(c.Context(), t)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.Status(fiber.StatusCreated).JSON(inserted)
+}
+
+// ---------- supervisor runs ----------
+
+type supervisorRunPayload struct {
+	ID            int64            `json:"id"`
+	Goal          string           `json:"goal"`
+	Status        string           `json:"status"`
+	Error         string           `json:"error"`
+	Warnings      []string         `json:"warnings"`
+	Subtasks      []map[string]any `json:"subtasks"`
+	WorkerResults []map[string]any `json:"worker_results"`
+	FinalSummary  string           `json:"final_summary"`
+	TokensUsed    int              `json:"tokens_used"`
+	TokensBudget  int              `json:"tokens_budget"`
+	StartedAt     string           `json:"started_at"`
+	FinishedAt    *string          `json:"finished_at,omitempty"`
+	DurationMs    int              `json:"duration_ms"`
+}
+
+func toSupervisorRunPayload(in domain.SupervisorRun) supervisorRunPayload {
+	payload := supervisorRunPayload{
+		ID:            in.ID,
+		Goal:          in.Goal,
+		Status:        in.Status,
+		Error:         in.Error,
+		Warnings:      in.Warnings,
+		Subtasks:      in.Subtasks,
+		WorkerResults: in.WorkerResults,
+		FinalSummary:  in.FinalSummary,
+		TokensUsed:    in.TokensUsed,
+		TokensBudget:  in.TokensBudget,
+		StartedAt:     in.StartedAt.UTC().Format(time.RFC3339Nano),
+		DurationMs:    in.DurationMs,
+	}
+	if in.FinishedAt != nil {
+		s := in.FinishedAt.UTC().Format(time.RFC3339Nano)
+		payload.FinishedAt = &s
+	}
+	return payload
+}
+
+func (s *Server) listSupervisorRuns(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	runs, err := s.Supervisor.Recent(c.Context(), limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	out := make([]supervisorRunPayload, 0, len(runs))
+	for _, r := range runs {
+		out = append(out, toSupervisorRunPayload(r))
+	}
+	return c.JSON(fiber.Map{"runs": out})
+}
+
+type incomingSupervisorRun struct {
+	Goal          string           `json:"goal"`
+	Status        string           `json:"status"`
+	Error         string           `json:"error"`
+	Warnings      []string         `json:"warnings"`
+	Subtasks      []map[string]any `json:"subtasks"`
+	WorkerResults []map[string]any `json:"worker_results"`
+	FinalSummary  string           `json:"final_summary"`
+	TokensUsed    int              `json:"tokens_used"`
+	TokensBudget  int              `json:"tokens_budget"`
+	StartedAt     string           `json:"started_at"`
+	FinishedAt    *string          `json:"finished_at,omitempty"`
+	DurationMs    int              `json:"duration_ms"`
+}
+
+func (s *Server) postSupervisorRun(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	var body incomingSupervisorRun
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "body is not valid JSON"},
+		})
+	}
+	if body.Goal == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "goal is required"},
+		})
+	}
+	startedAt, err := time.Parse(time.RFC3339Nano, body.StartedAt)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "started_at is required (RFC3339)"},
+		})
+	}
+	if body.Warnings == nil {
+		body.Warnings = []string{}
+	}
+	if body.Subtasks == nil {
+		body.Subtasks = []map[string]any{}
+	}
+	if body.WorkerResults == nil {
+		body.WorkerResults = []map[string]any{}
+	}
+	run := domain.SupervisorRun{
+		Goal:          body.Goal,
+		Status:        body.Status,
+		Error:         body.Error,
+		Warnings:      body.Warnings,
+		Subtasks:      body.Subtasks,
+		WorkerResults: body.WorkerResults,
+		FinalSummary:  body.FinalSummary,
+		TokensUsed:    body.TokensUsed,
+		TokensBudget:  body.TokensBudget,
+		StartedAt:     startedAt,
+		DurationMs:    body.DurationMs,
+	}
+	if body.FinishedAt != nil {
+		t, err := time.Parse(time.RFC3339Nano, *body.FinishedAt)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "finished_at is invalid"},
+			})
+		}
+		run.FinishedAt = &t
+	}
+	saved, err := s.Supervisor.Insert(c.Context(), run)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	return c.Status(fiber.StatusCreated).JSON(toSupervisorRunPayload(saved))
 }

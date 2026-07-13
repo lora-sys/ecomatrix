@@ -372,3 +372,26 @@ class A2AClient:
         if body.get("status") != "SETTLED":
             raise A2AError(Code.INTERNAL, f"unexpected response: {body}", http_status=r.status_code)
         return Receipt.from_dict(body["receipt"])
+
+    def post_supervisor_run(self, body: dict) -> dict:
+        r = self._client.post("/v1/supervisor/runs", json=body)
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"supervisor: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        return r.json()
+
+    def list_supervisor_runs(self, limit: int = 20) -> list[dict]:
+        r = self._client.get("/v1/supervisor/runs", params={"limit": limit})
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"supervisor: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        body = r.json()
+        return list(body.get("runs", []))

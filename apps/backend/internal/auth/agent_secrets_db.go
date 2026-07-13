@@ -11,7 +11,7 @@ import (
 // store from agent_secrets.go is consulted first; this layer is an
 // additional cache that survives restarts and supports rotation.
 type AgentSecretStoreDB struct {
-	mu   sync.RWMutex
+	mu    sync.RWMutex
 	cache map[string][]byte
 	repo  *repo.AgentRepo
 	db    *gorm.DB
