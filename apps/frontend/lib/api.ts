@@ -61,3 +61,28 @@ export async function fetchLLMCacheStats(): Promise<LLMCacheStats> {
   if (!r.ok) throw new Error(`llm-cache: ${r.status}`);
   return (await r.json()) as LLMCacheStats;
 }
+
+export interface SupervisorRunPayload {
+  id: number;
+  goal: string;
+  status: string;
+  error: string;
+  warnings: string[];
+  subtasks: Array<Record<string, unknown>>;
+  worker_results: Array<Record<string, unknown>>;
+  final_summary: string;
+  tokens_used: number;
+  tokens_budget: number;
+  started_at: string;
+  finished_at?: string;
+  duration_ms: number;
+}
+
+export async function fetchSupervisorRuns(limit = 6): Promise<SupervisorRunPayload[]> {
+  const r = await fetch(`${BASE}/v1/supervisor/runs?limit=${limit}`, {
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error(`supervisor: ${r.status}`);
+  const d = (await r.json()) as { runs: SupervisorRunPayload[] };
+  return d.runs ?? [];
+}

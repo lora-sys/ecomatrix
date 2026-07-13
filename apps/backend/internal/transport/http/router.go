@@ -39,6 +39,7 @@ type Server struct {
 	Conversations *repo.ConversationsRepo
 	LLMCache      *repo.LLMCacheRepo
 	Traces        *repo.TracesRepo
+	Supervisor    *repo.SupervisorRunsRepo
 }
 
 type corsConfig struct {
@@ -74,6 +75,8 @@ func (s *Server) Register() {
 	v1.Get("/llm-cache/stats", s.getLLMCacheStats)
 	v1.Post("/traces", s.postTrace)
 	v1.Get("/agents/by-string-id/:sid/traces", s.getAgentTraces)
+	v1.Get("/supervisor/runs", s.listSupervisorRuns)
+	v1.Post("/supervisor/runs", s.postSupervisorRun)
 }
 
 // ---------- middleware ----------
@@ -660,4 +663,142 @@ func (s *Server) postTrace(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.Status(fiber.StatusCreated).JSON(inserted)
+}
+
+// ---------- supervisor runs ----------
+
+type supervisorRunPayload struct {
+	ID            int64            `json:"id"`
+	Goal          string           `json:"goal"`
+	Status        string           `json:"status"`
+	Error         string           `json:"error"`
+	Warnings      []string         `json:"warnings"`
+	Subtasks      []map[string]any `json:"subtasks"`
+	WorkerResults []map[string]any `json:"worker_results"`
+	FinalSummary  string           `json:"final_summary"`
+	TokensUsed    int              `json:"tokens_used"`
+	TokensBudget  int              `json:"tokens_budget"`
+	StartedAt     string           `json:"started_at"`
+	FinishedAt    *string          `json:"finished_at,omitempty"`
+	DurationMs    int              `json:"duration_ms"`
+}
+
+func toSupervisorRunPayload(in domain.SupervisorRun) supervisorRunPayload {
+	payload := supervisorRunPayload{
+		ID:            in.ID,
+		Goal:          in.Goal,
+		Status:        in.Status,
+		Error:         in.Error,
+		Warnings:      in.Warnings,
+		Subtasks:      in.Subtasks,
+		WorkerResults: in.WorkerResults,
+		FinalSummary:  in.FinalSummary,
+		TokensUsed:    in.TokensUsed,
+		TokensBudget:  in.TokensBudget,
+		StartedAt:     in.StartedAt.UTC().Format(time.RFC3339Nano),
+		DurationMs:    in.DurationMs,
+	}
+	if in.FinishedAt != nil {
+		s := in.FinishedAt.UTC().Format(time.RFC3339Nano)
+		payload.FinishedAt = &s
+	}
+	return payload
+}
+
+func (s *Server) listSupervisorRuns(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	runs, err := s.Supervisor.Recent(c.Context(), limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	out := make([]supervisorRunPayload, 0, len(runs))
+	for _, r := range runs {
+		out = append(out, toSupervisorRunPayload(r))
+	}
+	return c.JSON(fiber.Map{"runs": out})
+}
+
+type incomingSupervisorRun struct {
+	Goal          string           `json:"goal"`
+	Status        string           `json:"status"`
+	Error         string           `json:"error"`
+	Warnings      []string         `json:"warnings"`
+	Subtasks      []map[string]any `json:"subtasks"`
+	WorkerResults []map[string]any `json:"worker_results"`
+	FinalSummary  string           `json:"final_summary"`
+	TokensUsed    int              `json:"tokens_used"`
+	TokensBudget  int              `json:"tokens_budget"`
+	StartedAt     string           `json:"started_at"`
+	FinishedAt    *string          `json:"finished_at,omitempty"`
+	DurationMs    int              `json:"duration_ms"`
+}
+
+func (s *Server) postSupervisorRun(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	var body incomingSupervisorRun
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "body is not valid JSON"},
+		})
+	}
+	if body.Goal == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "goal is required"},
+		})
+	}
+	startedAt, err := time.Parse(time.RFC3339Nano, body.StartedAt)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "started_at is required (RFC3339)"},
+		})
+	}
+	if body.Warnings == nil {
+		body.Warnings = []string{}
+	}
+	if body.Subtasks == nil {
+		body.Subtasks = []map[string]any{}
+	}
+	if body.WorkerResults == nil {
+		body.WorkerResults = []map[string]any{}
+	}
+	run := domain.SupervisorRun{
+		Goal:          body.Goal,
+		Status:        body.Status,
+		Error:         body.Error,
+		Warnings:      body.Warnings,
+		Subtasks:      body.Subtasks,
+		WorkerResults: body.WorkerResults,
+		FinalSummary:  body.FinalSummary,
+		TokensUsed:    body.TokensUsed,
+		TokensBudget:  body.TokensBudget,
+		StartedAt:     startedAt,
+		DurationMs:    body.DurationMs,
+	}
+	if body.FinishedAt != nil {
+		t, err := time.Parse(time.RFC3339Nano, *body.FinishedAt)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "finished_at is invalid"},
+			})
+		}
+		run.FinishedAt = &t
+	}
+	saved, err := s.Supervisor.Insert(c.Context(), run)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	return c.Status(fiber.StatusCreated).JSON(toSupervisorRunPayload(saved))
 }

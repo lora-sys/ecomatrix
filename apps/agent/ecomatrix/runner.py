@@ -12,10 +12,13 @@ the harness can run it for a bounded number of ticks and capture evidence.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
 import os
+from datetime import datetime, timedelta, timezone
 import sys
 import time
 from typing import Any
@@ -270,8 +273,48 @@ def run_supervisor_scenario(
     log.info("supervisor end workers=%d subtasks=%d error=%s",
              len(workers), len(result.subtasks), result.error or "")
     print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+    _post_supervisor_run_to_backend(client, result, log)
     return result
 
+
+def _post_supervisor_run_to_backend(
+    client: A2AClient,
+    result: SupervisorResult,
+    log: logging.Logger,
+) -> None:
+    """Best-effort forward of the run summary to the backend's persistence API."""
+    if os.environ.get("ECOMATRIX_SUPERVISOR_SKIP_PERSIST", "0") == "1":
+        return
+    cost = result.cost or {}
+    body = {
+        "goal": result.goal,
+        "status": "finished" if result.error is None else "failed",
+        "error": result.error or "",
+        "warnings": list(result.warnings or []),
+        "subtasks": list(result.subtasks or []),
+        "worker_results": list(result.worker_results or []),
+        "final_summary": result.final_summary,
+        "tokens_used": int(cost.get("tick_used", 0)),
+        "tokens_budget": int(cost.get("tick_budget", 0)),
+        "started_at": (
+            (datetime.now(timezone.utc) - timedelta(milliseconds=result.duration_ms))
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        ),
+        "finished_at": (
+            datetime.now(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        ),
+        "duration_ms": int(result.duration_ms),
+    }
+    try:
+        client.post_supervisor_run(body)
+        log.info("supervisor run persisted to backend")
+    except Exception as exc:
+        log.warning("supervisor persistence skipped: %s", exc)
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="EcoMatrix agent runner")

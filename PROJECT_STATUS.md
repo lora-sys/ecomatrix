@@ -55,7 +55,8 @@
 
 | ID | Title | Owner | Status | Notes |
 | -- | ----- | ----- | ------ | ----- |
-| ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 green on PR run 29247531327 (agent, backend, frontend, e2e all pass); recovered baseline gofmt/ESLint, backend test DSN, e2e DSN, CORS, dashboard test, and concurrency flake. |
+| ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 MERGEABLE on `lora-sys/ecomatrix`; CI run 29247531327 green. |
+| ISS-029 | Supervisor task stream in the dashboard | agent | Implementing | Branch `feature/ISSUE-029-supervisor-tasks`; backend persistence + Python POST + dashboard panel implemented; local gates green; PR open. |
 
 ## Blockers
 - (none)
@@ -64,6 +65,7 @@
 (none)
 
 ## Recent Changes
+- 2026-07-13 — ISS-029 implementation complete locally: backend persistence, Python client POST, dashboard panel, and e2e assertion landed; local gates green and PR opened.
 - 2026-07-13 — PR run `29247531327` returned all four required CI jobs green; ISS-028 transitions to Done pending PR review.
 - 2026-07-13 — Created private `lora-sys/ecomatrix`, Issue #1, and Draft PR #2; first CI run exposed baseline gofmt and interactive ESLint failures.
 - 2026-07-13 — ISS-028 prepared as a local feature commit; authenticated GitHub account has no matching `ecomatrix` repository, so the board remains in Review.
