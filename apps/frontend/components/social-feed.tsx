@@ -45,36 +45,37 @@ export function SocialFeed() {
     };
   }, [setSocial]);
 
-  if (social.length === 0) {
-    return (
-      <div className="font-mono text-xs text-ink-dim">
-        等待 Agent 们的第一条广播…
-      </div>
-    );
-  }
   return (
-    <ul
-      className="divide-y divide-hairline/60 font-mono text-xs"
-      role="log"
-      aria-live="polite"
-      aria-relevant="additions"
+    <div
       aria-label="agent social feed"
+      aria-live="polite"
+      className="font-mono text-xs"
     >
-      {social.slice(0, 12).map((p) => (
-        <li key={p.post_id} className="flex items-baseline justify-between gap-3 py-1.5">
-          <span className="flex-1 truncate">
-            <span className={clsx("mr-2", INTENT_COLOR[p.intent_type])}>
-              [{p.intent_type}]
-            </span>
-            <span className="text-ink">{p.agent_id}</span>
-            <span className="mx-2 text-ink-dim">·</span>
-            <span className="text-ink-muted">{p.content}</span>
-          </span>
-          <time className="shrink-0 text-ink-dim">
-            {new Date(p.ts).toLocaleTimeString("zh-CN", { hour12: false })}
-          </time>
-        </li>
-      ))}
-    </ul>
+      {social.length === 0 ? (
+        <div className="text-ink-dim">等待 Agent 们的第一条广播…</div>
+      ) : (
+        <ul
+          className="divide-y divide-hairline/60"
+          role="log"
+          aria-relevant="additions"
+        >
+          {social.slice(0, 12).map((p) => (
+            <li key={p.post_id} className="flex items-baseline justify-between gap-3 py-1.5">
+              <span className="flex-1 truncate">
+                <span className={clsx("mr-2", INTENT_COLOR[p.intent_type])}>
+                  [{p.intent_type}]
+                </span>
+                <span className="text-ink">{p.agent_id}</span>
+                <span className="mx-2 text-ink-dim">·</span>
+                <span className="text-ink-muted">{p.content}</span>
+              </span>
+              <time className="shrink-0 text-ink-dim">
+                {new Date(p.ts).toLocaleTimeString("zh-CN", { hour12: false })}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
