@@ -29,7 +29,7 @@
 | ISS-024 | Social square: POST /v1/feeds + A2A POST_FEED    | backend | Done | Issue 024/025 collapsed into the multi-scenario. |
 | ISS-025 | --scenario multi (parallel agents)              | agent   | Done | |
 | ISS-026 | Dashboard social-feed panel + BFF proxy         | frontend| Done | |
-| ISS-027 | Dashboard agent LTM panel + GET/PUT endpoints   | frontend/backend | Done | Phase 3.2 close-out. | `docs/evidence/PHASE-2/`. |
+| ISS-027 | Dashboard agent LTM panel + GET/PUT endpoints   | frontend/backend | Done | Phase 3.2 close-out. |
 
 ## Phase 3 — God's Eye (Week 3)
 
@@ -42,13 +42,33 @@
 | ISS-022 | Playwright tests + desktop/mobile screenshots    | qa | Done        | 4/4 passing; screenshots in evidence. |
 | ISS-023 | Phase 3 evidence + `v0.3.0` tag                  | release | Done        | docs/evidence/PHASE-3/. |
 
+## Post-MVP Enhancements
+
+| ID | Title | Owner | Status | Notes |
+| -- | ----- | ----- | ------ | ----- |
+| PHASE-4 | Metrics history + persistent HMAC + UX evidence | cross-cut | Done | `docs/evidence/PHASE-4-final/`. |
+| PHASE-5 | LLM provider + tools + conversations + cache | cross-cut | Done | `docs/evidence/PHASE-5-ai/`. |
+| PHASE-6 | Production agent contracts + ReAct + eval + traces | agent/backend | Done | `docs/evidence/PHASE-6-ai/`. |
+| PHASE-7 | Live dashboard demo capture | qa | Done | `docs/evidence/PHASE-7-ai/`. |
+
+## Phase 8 — Hierarchical Supervisor
+
+| ID | Title | Owner | Status | Notes |
+| -- | ----- | ----- | ------ | ----- |
+| ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Review | Local gates green and feature committed; no Git remote, so PR/CI unavailable. |
+
 ## Blockers
-(none)
+- Repository has no Git remote. ISS-028 cannot be pushed, opened as a PR, or verified by remote CI until a remote is configured.
 
 ## Decisions Pending Human Input
 (none)
 
 ## Recent Changes
+- 2026-07-13 — ISS-028 prepared as a local feature commit; authenticated GitHub account has no matching `ecomatrix` repository, so the board remains in Review.
+- 2026-07-13 — ISS-028 implementation complete locally: 101 Python tests, Go race suite, Ruff, live seeded CLI, and two reviewer passes green; moved to Review pending PR/CI.
+- 2026-07-13 — ISS-028 claimed: recovered the unfinished supervisor prototype; baseline is 80 Python tests passing and 3 supervisor tests failing.
+- 2026-07-12 — Phase 6 shipped production agent contracts, ReAct, traces, cost controls, memory compression, and golden evals; Phase 7 captured live demo evidence.
+- 2026-07-12 — Phase 4–5 shipped metrics history, persistent HMAC secrets, real LLM plumbing, tool calls, conversations, and cache.
 - 2026-07-11 — Phase 3.1: social square (POST_FEED) + --scenario multi (13 agents, 3 ticks, 37 settled, 39 feed posts, world conservation holds).
 - 2026-07-11 — Phase 2 shipped: Python LangGraph agent drives the Go backend end-to-end; 14 unit/integration tests + 5/10-tick two-agent scenarios pass with world-GOLD conservation.
 - 2026-07-11 — Phase 1 shipped: Go backend live, 14 tests pass under `-race`, 50-goroutine concurrency proof recorded.
