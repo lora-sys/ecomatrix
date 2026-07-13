@@ -56,7 +56,7 @@
 | ID | Title | Owner | Status | Notes |
 | -- | ----- | ----- | ------ | ----- |
 | ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 MERGEABLE on `lora-sys/ecomatrix`; CI run 29247531327 green. |
-| ISS-029 | Supervisor task stream in the dashboard | agent | Implementing | Branch `feature/ISSUE-029-supervisor-tasks`; backend persistence + Python POST + dashboard panel implemented; local gates green; PR open. |
+| ISS-029 | Supervisor task stream in the dashboard | agent | Done | PR #3 green on run `29249552264` (agent 16s, backend 37s, frontend 1m13s, e2e 2m26s). |
 
 ## Blockers
 - (none)
