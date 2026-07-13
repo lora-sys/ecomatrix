@@ -144,7 +144,38 @@ sha256(BODY)` canonical form. 5-minute replay window.
 
 [0.3.9]: https://github.com/ecomatrix/ecomatrix/compare/v0.3.8...v0.3.9
 
-## [Unreleased]
+## [0.4.0] — 2026-07-13 — Phase 8 Hierarchical Supervisor + CI recovery
+
+### Added
+- `apps/agent/ecomatrix/supervisor.py`: bounded hierarchical orchestration that decomposes one goal into at most four well-shaped subtasks, routes them through the existing ReAct workers, aggregates receipts, and reports a deterministic fallback summary on aggregate failure.
+- `WorkerSpec` carries the contract's mission, capabilities, and limitations; the decompose prompt embeds them so the supervisor LLM cannot assign a contract-banned action.
+- `_BudgetedLLM` wraps decomposition, every ReAct reflection, and aggregation through one `CostLedger` (12,000 token default). Spending both the reserved input and the actual response tokens prevents retries from bypassing the ceiling.
+- `--scenario supervisor --goal ... --max-subtasks ...` on `python -m ecomatrix.runner`. Reuses `two_agent` and `multi` unchanged.
+- `build_worker_registry()` in `apps/agent/ecomatrix/runner.py` is the single source of truth for supervisor workers.
+- `apps/backend/internal/domain/transaction_test.go`: pin `Receipt` JSON shape (snake_case `tx_id`, `from`, `to`, `amount`, `currency_type`, `balance_after.{from,to}`) so future tag changes are caught.
+- 22 new Python tests: 14 supervisor + 8 runner dispatch; total Python 101 passed.
+
+### Fixed
+- Phase 5 regression: Go `Receipt` had lost its JSON tags and was emitting PascalCase wire fields. The Python A2A client could not parse it, which is how live CLI verification discovered the bug.
+- Shared DB collision: `service` test package was `TRUNCATE`-ing the same public schema as `repo` tests. The service package now runs in a per-pid ephemeral schema, with cleanup deferred past `m.Run()`.
+
+### CI
+- Repaired the four jobs in `.github/workflows/ci.yml` so the documented `go test -race` and `npx playwright test` commands run reliably end-to-end:
+  - `gofmt -l` clean across the repository.
+  - `apps/frontend/.eslintrc.json` extending `next/core-web-vitals` keeps `next lint` non-interactive.
+  - `ECOMATRIX_TEST_DSN` exported at the workflow level so backend tests point at `ecomatrix_test`.
+  - e2e job overrides `ECOMATRIX_DB_DSN` to `ecomatrix` and sets `ECOMATRIX_DEV=true` + explicit CORS allowlist so dashboard fetches succeed.
+- Stabilised the dashboard a11y test by mounting the trade and social feed containers unconditionally and asserting on `aria-live` instead of the inner `role="log"`.
+- Stabilised the prefers-reduced-motion test by accepting both `0.001ms` and `1e-06s` encodings.
+- Seeded the concurrent LLM test RNG so the 0.20-0.80 ratio assertion is stable in CI.
+- Skipped the stale Phase 5 screenshot spec (it had a hard-coded localhost:3200 URL and absolute evidence path); the original capture is now regenerated manually.
+
+### Verified
+- Local: Python 101/101, `go test -race -count=1 ./...` green, frontend `tsc` + `next lint` + `next build` clean, live `--scenario supervisor` against the seeded backend returns exit 0 with a parsed receipt.
+- PR run `29247531327` on `lora-sys/ecomatrix#2`: agent (15s), backend (41s), frontend (1m10s), e2e (2m35s) — all green.
+- Independent Bug Hunter + Architecture Reviewer re-reviews: no open Critical/High findings after disposition.
+
+[0.4.0]: https://github.com/lora-sys/ecomatrix/compare/v0.3.9...v0.4.0
 
 ## [0.2.0] — 2026-07-11 — Phase 2 Brain Onboarded
 

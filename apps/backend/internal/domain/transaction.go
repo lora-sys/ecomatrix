@@ -59,14 +59,14 @@ type FeedPost struct {
 
 // Receipt is what the trade service returns to the transport layer.
 type Receipt struct {
-	TxID         string
-	From         string
-	To           string
-	Amount       int64
-	CurrencyType string
+	TxID         string `json:"tx_id"`
+	From         string `json:"from"`
+	To           string `json:"to"`
+	Amount       int64  `json:"amount"`
+	CurrencyType string `json:"currency_type"`
 	BalanceAfter struct {
-		From int64
-		To   int64
+		From int64 `json:"from"`
+		To   int64 `json:"to"`
 	} `json:"balance_after"`
 }
 

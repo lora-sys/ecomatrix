@@ -1,0 +1,247 @@
+[
+  {
+    "path": "docs/INDEX.md",
+    "sha256_12": "b0247f473d30",
+    "size": 2356
+  },
+  {
+    "path": "docs/architecture/agent.md",
+    "sha256_12": "dcf0c8790395",
+    "size": 1489
+  },
+  {
+    "path": "docs/architecture/api.md",
+    "sha256_12": "104a862d6df1",
+    "size": 3881
+  },
+  {
+    "path": "docs/architecture/backend.md",
+    "sha256_12": "f3376ac65f72",
+    "size": 2285
+  },
+  {
+    "path": "docs/architecture/db.md",
+    "sha256_12": "ad74c8388a44",
+    "size": 3205
+  },
+  {
+    "path": "docs/architecture/frontend.md",
+    "sha256_12": "477bb1573cc7",
+    "size": 1702
+  },
+  {
+    "path": "docs/architecture/security.md",
+    "sha256_12": "3343a147ca3b",
+    "size": 2222
+  },
+  {
+    "path": "docs/architecture/system.md",
+    "sha256_12": "07601a6b47c8",
+    "size": 5194
+  },
+  {
+    "path": "docs/decisions/0001-stack-and-architecture.md",
+    "sha256_12": "6d65763d1977",
+    "size": 1492
+  },
+  {
+    "path": "docs/decisions/0002-python-a2a-parity.md",
+    "sha256_12": "2d8dea570f7e",
+    "size": 1459
+  },
+  {
+    "path": "docs/decisions/0003-dashboard-decoupling.md",
+    "sha256_12": "b88db92b842f",
+    "size": 1695
+  },
+  {
+    "path": "docs/decisions/0004-social-feed-action.md",
+    "sha256_12": "e18cc7664d05",
+    "size": 1846
+  },
+  {
+    "path": "docs/decisions/0005-ltm-jsonb-with-gin.md",
+    "sha256_12": "49d164f50d65",
+    "size": 1520
+  },
+  {
+    "path": "docs/decisions/0006-per-agent-hmac.md",
+    "sha256_12": "01f244b51c23",
+    "size": 1722
+  },
+  {
+    "path": "docs/evidence/ISSUE-028/change-summary.md",
+    "sha256_12": "48f6bf0f0fd7",
+    "size": 1594
+  },
+  {
+    "path": "docs/evidence/ISSUE-028/review-report.md",
+    "sha256_12": "0e3a4358f86e",
+    "size": 2380
+  },
+  {
+    "path": "docs/evidence/ISSUE-028/verification.md",
+    "sha256_12": "94375cf8709a",
+    "size": 5507
+  },
+  {
+    "path": "docs/evidence/PHASE-1/change-summary.md",
+    "sha256_12": "3b704cd3b6eb",
+    "size": 2611
+  },
+  {
+    "path": "docs/evidence/PHASE-1/review-report.md",
+    "sha256_12": "3f5fc5086343",
+    "size": 2347
+  },
+  {
+    "path": "docs/evidence/PHASE-1/verification.md",
+    "sha256_12": "1ce6664d43cd",
+    "size": 2696
+  },
+  {
+    "path": "docs/evidence/PHASE-2/change-summary.md",
+    "sha256_12": "3134fc298fd0",
+    "size": 3141
+  },
+  {
+    "path": "docs/evidence/PHASE-2/review-report.md",
+    "sha256_12": "6ce348b928c5",
+    "size": 2398
+  },
+  {
+    "path": "docs/evidence/PHASE-2/verification.md",
+    "sha256_12": "accb6d09be72",
+    "size": 2753
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-ci.md",
+    "sha256_12": "eef9a0136df5",
+    "size": 1719
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-cors.md",
+    "sha256_12": "d6647ddbc6ac",
+    "size": 2062
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-demo.md",
+    "sha256_12": "5141ef8a572e",
+    "size": 2263
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-hmac.md",
+    "sha256_12": "cac7d82fcf36",
+    "size": 3145
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-live-social.md",
+    "sha256_12": "0c83e0f36aca",
+    "size": 2185
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-ltm.md",
+    "sha256_12": "e8e1604fafbb",
+    "size": 1900
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-multi.md",
+    "sha256_12": "6c6c0c95d185",
+    "size": 1893
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-polish.md",
+    "sha256_12": "b20861cb56ca",
+    "size": 4258
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary-recharts.md",
+    "sha256_12": "5a63583d7f62",
+    "size": 1255
+  },
+  {
+    "path": "docs/evidence/PHASE-3/change-summary.md",
+    "sha256_12": "0bc351538a77",
+    "size": 3835
+  },
+  {
+    "path": "docs/evidence/PHASE-3/parallel-review/SYNTHESIS.md",
+    "sha256_12": "38382450c862",
+    "size": 6428
+  },
+  {
+    "path": "docs/evidence/PHASE-3/parallel-review/architecture-review.md",
+    "sha256_12": "da808efa9085",
+    "size": 2866
+  },
+  {
+    "path": "docs/evidence/PHASE-3/parallel-review/security-audit.md",
+    "sha256_12": "c8543e81be92",
+    "size": 5297
+  },
+  {
+    "path": "docs/evidence/PHASE-3/parallel-review/security-review.md",
+    "sha256_12": "b665eaf78458",
+    "size": 6268
+  },
+  {
+    "path": "docs/evidence/PHASE-3/parallel-review/ux-review.md",
+    "sha256_12": "435c7cea5de3",
+    "size": 2891
+  },
+  {
+    "path": "docs/evidence/PHASE-3/review-report.md",
+    "sha256_12": "edb669c7fdd9",
+    "size": 3350
+  },
+  {
+    "path": "docs/evidence/PHASE-3/verification-ltm.md",
+    "sha256_12": "4d2fadfe9e37",
+    "size": 2911
+  },
+  {
+    "path": "docs/evidence/PHASE-3/verification-multi.md",
+    "sha256_12": "4c95450be0c2",
+    "size": 2671
+  },
+  {
+    "path": "docs/evidence/PHASE-3/verification.md",
+    "sha256_12": "a5601f79f7f3",
+    "size": 3852
+  },
+  {
+    "path": "docs/evidence/PHASE-4-final/REPORT.md",
+    "sha256_12": "f5c5c70ec75a",
+    "size": 5446
+  },
+  {
+    "path": "docs/evidence/PHASE-4-final/UX-REVIEW.md",
+    "sha256_12": "0f296aea12e0",
+    "size": 5183
+  },
+  {
+    "path": "docs/evidence/PHASE-5-ai/REPORT.md",
+    "sha256_12": "59cba4eea519",
+    "size": 7293
+  },
+  {
+    "path": "docs/evidence/PHASE-6-ai/REPORT.md",
+    "sha256_12": "aa41654073ef",
+    "size": 5083
+  },
+  {
+    "path": "docs/evidence/PHASE-6-ai/design-audit.md",
+    "sha256_12": "b95a228fc5e4",
+    "size": 3417
+  },
+  {
+    "path": "docs/product/prd.md",
+    "sha256_12": "6ea7b5f03147",
+    "size": 6787
+  },
+  {
+    "path": "docs/product/roadmap.md",
+    "sha256_12": "5e1f3db4eda2",
+    "size": 4073
+  }
+]

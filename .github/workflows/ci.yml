@@ -8,6 +8,7 @@ on:
 
 env:
   ECOMATRIX_DB_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable
+  ECOMATRIX_TEST_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable
 
 jobs:
   backend:
@@ -83,6 +84,8 @@ jobs:
     name: e2e (Playwright)
     runs-on: ubuntu-latest
     needs: [backend, frontend]
+    env:
+      ECOMATRIX_DB_DSN: postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable
     services:
       postgres:
         image: postgres:16-alpine
@@ -109,11 +112,17 @@ jobs:
       - run: npm ci
       - name: Build backend + seed
         working-directory: apps/backend
+        env:
+          ECOMATRIX_DEV: "true"
+          ECOMATRIX_CORS_ALLOWED_ORIGINS: http://localhost:3100,http://127.0.0.1:3100
         run: |
           go build -o /tmp/ecomatrix-server ./cmd/server
           go build -o /tmp/ecomatrix-seed ./cmd/seed
           ECOMATRIX_DB_DSN=$ECOMATRIX_DB_DSN /tmp/ecomatrix-seed
       - name: Boot backend
+        env:
+          ECOMATRIX_DEV: "true"
+          ECOMATRIX_CORS_ALLOWED_ORIGINS: http://localhost:3100,http://127.0.0.1:3100
         run: |
           ECOMATRIX_DB_DSN=$ECOMATRIX_DB_DSN /tmp/ecomatrix-server &
           for i in 1 2 3 4 5 6 7 8 9 10; do
