@@ -20,10 +20,10 @@ type bucket struct {
 // RateLimiter caps requests per agent. capacity = max burst; refillPerSec
 // is the steady-state allowance.
 type RateLimiter struct {
-	mu            sync.Mutex
-	buckets       map[string]*bucket
-	capacity      float64
-	refillPerSec  float64
+	mu           sync.Mutex
+	buckets      map[string]*bucket
+	capacity     float64
+	refillPerSec float64
 }
 
 func NewRateLimiter(capacity, refillPerSec float64) *RateLimiter {

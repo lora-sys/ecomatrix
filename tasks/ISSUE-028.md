@@ -19,6 +19,10 @@ The required parallel Go race gate then exposed repo/service test binaries
 truncating the same public schema. Service tests need an isolated ephemeral
 schema so the documented command is reliable.
 
+The first GitHub Actions run exposed two additional baseline gates: six Go
+files were not gofmt-clean, and frontend lint attempted interactive ESLint
+setup because no configuration file was committed.
+
 ## Goal
 
 Ship a bounded supervisor workflow that decomposes one goal, routes validated
@@ -44,6 +48,7 @@ run from the existing agent CLI.
 8. Add unit and CLI-dispatch tests, then capture evidence.
 9. Restore the A2A receipt's snake_case wire shape and prove it live.
 10. Isolate service tests from repo-package database cleanup.
+11. Repair baseline gofmt and non-interactive frontend lint gates.
 
 ## Acceptance Criteria
 
@@ -59,6 +64,7 @@ run from the existing agent CLI.
 - [x] CLI exits non-zero when any delegated worker fails, while still returning all worker results.
 - [x] Full Python pytest passes; touched Python files pass Ruff.
 - [x] Go receipt JSON matches A2A v1.1; `go test -race ./...` passes.
+- [ ] GitHub Actions backend, agent, frontend, and e2e jobs pass.
 
 ## Evidence Requirements
 
@@ -90,6 +96,13 @@ run from the existing agent CLI.
 - `apps/backend/internal/domain/transaction.go`
 - `apps/backend/internal/domain/transaction_test.go`
 - `apps/backend/internal/service/trade_test.go`
+- `apps/backend/internal/auth/agent_secrets_db.go`
+- `apps/backend/internal/auth/ratelimit.go`
+- `apps/backend/internal/repo/llm_cache_repo.go`
+- `apps/backend/internal/repo/traces_repo.go`
+- `apps/backend/internal/service/metrics.go`
+- `apps/backend/internal/transport/http/router.go`
+- `apps/frontend/.eslintrc.json`
 - `tasks/ISSUE-028.md`
 - `docs/product/roadmap.md`
 - `docs/evidence/ISSUE-028/**`

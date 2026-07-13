@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"os"
 	"log/slog"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -23,15 +23,15 @@ import (
 )
 
 type Server struct {
-	App       *fiber.App
-	Agents    *repo.AgentRepo
-	Txs       *repo.TxRepo
-	Feed      *repo.FeedRepo
-	Trade     *service.TradeService
-	Metrics   *service.MetricsService
-	Hub       *ws.Hub
-	Log       *slog.Logger
-	Admin     string
+	App           *fiber.App
+	Agents        *repo.AgentRepo
+	Txs           *repo.TxRepo
+	Feed          *repo.FeedRepo
+	Trade         *service.TradeService
+	Metrics       *service.MetricsService
+	Hub           *ws.Hub
+	Log           *slog.Logger
+	Admin         string
 	DB            *sql.DB
 	CORS          corsConfig
 	AuthStore     auth.AgentSecretStore
@@ -395,8 +395,8 @@ func (s *Server) rateLimit(action string) fiber.Handler {
 		if !s.RateLimit.Allow(sender + "|" + action) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": fiber.Map{
-					"code":     a2a.CodeRateLimited,
-					"message":  "rate limit exceeded",
+					"code":      a2a.CodeRateLimited,
+					"message":   "rate limit exceeded",
 					"retryable": true,
 				},
 			})
@@ -590,8 +590,8 @@ func rateLimitMiddleware(rl *auth.RateLimiter) fiber.Handler {
 		if !rl.Allow(sender + "|" + action) {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": fiber.Map{
-					"code":    a2a.CodeRateLimited,
-					"message": "rate limit exceeded",
+					"code":      a2a.CodeRateLimited,
+					"message":   "rate limit exceeded",
 					"retryable": true,
 				},
 			})
@@ -615,18 +615,18 @@ func (s *Server) postTrace(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusServiceUnavailable, "tracing not configured")
 	}
 	var body struct {
-		AgentID   string                 `json:"agent_id"`
-		Kind      string                 `json:"kind"`
-		Content   string                 `json:"content"`
-		LatencyMS *int                   `json:"latency_ms,omitempty"`
-		TokensIn  *int                   `json:"tokens_in,omitempty"`
-		TokensOut *int                   `json:"tokens_out,omitempty"`
-		ToolName  string                 `json:"tool_name"`
-		ToolInput  json.RawMessage        `json:"tool_input,omitempty"`
-		ToolOutput json.RawMessage        `json:"tool_output,omitempty"`
-		CostUSD   *float64               `json:"cost_usd,omitempty"`
-		ErrorCode string                 `json:"error_code"`
-		ParentID  *int64                 `json:"parent_id,omitempty"`
+		AgentID    string          `json:"agent_id"`
+		Kind       string          `json:"kind"`
+		Content    string          `json:"content"`
+		LatencyMS  *int            `json:"latency_ms,omitempty"`
+		TokensIn   *int            `json:"tokens_in,omitempty"`
+		TokensOut  *int            `json:"tokens_out,omitempty"`
+		ToolName   string          `json:"tool_name"`
+		ToolInput  json.RawMessage `json:"tool_input,omitempty"`
+		ToolOutput json.RawMessage `json:"tool_output,omitempty"`
+		CostUSD    *float64        `json:"cost_usd,omitempty"`
+		ErrorCode  string          `json:"error_code"`
+		ParentID   *int64          `json:"parent_id,omitempty"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid json")
@@ -642,18 +642,18 @@ func (s *Server) postTrace(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	t := domain.Trace{
-		AgentID:   body.AgentID,
-		Kind:      body.Kind,
-		Content:   body.Content,
-		LatencyMS: body.LatencyMS,
-		TokensIn:  body.TokensIn,
-		TokensOut: body.TokensOut,
-		ToolName:  body.ToolName,
+		AgentID:    body.AgentID,
+		Kind:       body.Kind,
+		Content:    body.Content,
+		LatencyMS:  body.LatencyMS,
+		TokensIn:   body.TokensIn,
+		TokensOut:  body.TokensOut,
+		ToolName:   body.ToolName,
 		ToolInput:  body.ToolInput,
 		ToolOutput: body.ToolOutput,
-		CostUSD:   body.CostUSD,
-		ErrorCode: body.ErrorCode,
-		ParentID:  body.ParentID,
+		CostUSD:    body.CostUSD,
+		ErrorCode:  body.ErrorCode,
+		ParentID:   body.ParentID,
 	}
 	inserted, err := s.Traces.Insert(c.Context(), t)
 	if err != nil {

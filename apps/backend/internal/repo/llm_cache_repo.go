@@ -9,13 +9,13 @@ import (
 )
 
 type LLMCacheModel struct {
-	Key       string    `gorm:"primaryKey;column:key"`
-	Model     string    `gorm:"column:model"`
-	Response  string    `gorm:"column:response"`
+	Key        string    `gorm:"primaryKey;column:key"`
+	Model      string    `gorm:"column:model"`
+	Response   string    `gorm:"column:response"`
 	PromptHash string    `gorm:"column:prompt_hash"`
-	CreatedAt time.Time `gorm:"column:created_at"`
-	ExpiresAt time.Time `gorm:"column:expires_at"`
-	HitCount  int       `gorm:"column:hit_count"`
+	CreatedAt  time.Time `gorm:"column:created_at"`
+	ExpiresAt  time.Time `gorm:"column:expires_at"`
+	HitCount   int       `gorm:"column:hit_count"`
 }
 
 func (LLMCacheModel) TableName() string { return "llm_cache" }
