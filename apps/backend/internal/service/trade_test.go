@@ -2,6 +2,8 @@ package service_test
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -18,17 +20,65 @@ import (
 	"gorm.io/gorm"
 )
 
-// testDB returns a freshly-migrated connection to a per-test schema so tests
-// are independent and parallel-safe.
+var serviceTestDSN string
+
+func TestMain(m *testing.M) {
+	os.Exit(runServiceTests(m))
+}
+
+func runServiceTests(m *testing.M) (code int) {
+	baseDSN := os.Getenv("ECOMATRIX_TEST_DSN")
+	if baseDSN == "" {
+		baseDSN = "postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable"
+	}
+	baseDB, err := gorm.Open(postgres.Open(baseDSN), &gorm.Config{})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "open service test database:", err)
+		return 1
+	}
+
+	schema := fmt.Sprintf("ecomatrix_service_test_%d", os.Getpid())
+	if err := baseDB.Exec("CREATE SCHEMA " + schema).Error; err != nil {
+		fmt.Fprintln(os.Stderr, "create service test schema:", err)
+		return 1
+	}
+	defer func() {
+		if err := baseDB.Exec("DROP SCHEMA " + schema + " CASCADE").Error; err != nil {
+			fmt.Fprintln(os.Stderr, "drop service test schema:", err)
+			if code == 0 {
+				code = 1
+			}
+		}
+	}()
+
+	parsed, err := url.Parse(baseDSN)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "parse service test DSN:", err)
+		return 1
+	}
+	query := parsed.Query()
+	query.Set("search_path", schema)
+	parsed.RawQuery = query.Encode()
+	serviceTestDSN = parsed.String()
+
+	testDB, err := gorm.Open(postgres.Open(serviceTestDSN), &gorm.Config{})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "open isolated service test schema:", err)
+		return 1
+	}
+	if err := repo.Migrate(testDB); err != nil {
+		fmt.Fprintln(os.Stderr, "migrate isolated service test schema:", err)
+		return 1
+	}
+	return m.Run()
+}
+
+// testDB returns a migrated connection to this package's isolated schema so
+// repository and service test binaries can run concurrently.
 func testDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	dsn := os.Getenv("ECOMATRIX_TEST_DSN")
-	if dsn == "" {
-		dsn = "postgres://repotwin:repotwin@localhost:5432/ecomatrix?sslmode=disable"
-	}
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(serviceTestDSN), &gorm.Config{})
 	require.NoError(t, err)
-	require.NoError(t, repo.Migrate(db))
 	return db
 }
 

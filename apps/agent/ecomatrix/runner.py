@@ -4,6 +4,7 @@ Scenarios:
 - ``single``: spin up one agent of the requested job_type.
 - ``two_agent``: miner ↔ merchant end-to-end (Phase 2 exit scenario).
 - ``multi``: spawn all seeded agents.
+- ``supervisor``: decompose one goal and route it to specialized ReAct workers.
 
 The runner is intentionally simple — it advances ticks with a small sleep so
 the harness can run it for a bounded number of ticks and capture evidence.
@@ -20,10 +21,12 @@ import time
 from typing import Any
 
 from .a2a import A2AClient, Code
+from .contracts import get_contract
 from .graphs import miner, merchant, hacker, mediator
 from .graphs.base import run_one_tick
 from .llm import get_default_llm
 from .memory import FileLongTermMemory, LongTermMemory, PostgresLongTermMemory, ShortTermMemory
+from .supervisor import MAX_SUBTASKS, SupervisorResult, WorkerSpec, run_supervisor
 
 
 GRAPH_BUILDERS = {
@@ -32,6 +35,25 @@ GRAPH_BUILDERS = {
     "hacker": hacker.build,
     "mediator": mediator.build,
 }
+
+
+def build_worker_registry(client: A2AClient) -> list[WorkerSpec]:
+    """Build a stable supervisor registry from supported seeded agents."""
+    workers: list[WorkerSpec] = []
+    for agent in client.list_agents(limit=200):
+        agent_id = str(agent.get("StringID") or "").strip()
+        job_type = str(agent.get("JobType") or "").strip()
+        if not agent_id or job_type not in GRAPH_BUILDERS:
+            continue
+        contract = get_contract(job_type)
+        workers.append(WorkerSpec(
+            agent_id=agent_id,
+            job_type=job_type,
+            description=contract.goal,
+            capabilities=tuple(contract.capabilities),
+            limitations=tuple(contract.limitations),
+        ))
+    return sorted(workers, key=lambda worker: worker.agent_id)
 
 
 def _use_pg_ltm() -> bool:
@@ -228,13 +250,39 @@ def run_multi_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
     return summary
 
 
+def run_supervisor_scenario(
+    client: A2AClient,
+    *,
+    goal: str,
+    max_subtasks: int,
+    log: logging.Logger,
+) -> SupervisorResult:
+    """Build a worker registry from seeded agents and run one supervisor goal."""
+    workers = build_worker_registry(client)
+
+    result = run_supervisor(
+        goal=goal,
+        workers=workers,
+        llm=get_default_llm(),
+        client=client,
+        max_subtasks=max_subtasks,
+    )
+    log.info("supervisor end workers=%d subtasks=%d error=%s",
+             len(workers), len(result.subtasks), result.error or "")
+    print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="EcoMatrix agent runner")
     p.add_argument("--backend", default=os.environ.get("ECOMATRIX_AGENT_BACKEND_URL", "http://localhost:8080"))
-    p.add_argument("--scenario", default="two_agent", choices=["single", "two_agent", "multi"])
+    p.add_argument("--scenario", default="two_agent",
+                   choices=["single", "two_agent", "multi", "supervisor"])
     p.add_argument("--ticks", type=int, default=5)
     p.add_argument("--tick-seconds", type=float,
                    default=float(os.environ.get("ECOMATRIX_AGENT_TICK_SECONDS", "0.5")))
+    p.add_argument("--goal", default="", help="high-level goal for the supervisor scenario")
+    p.add_argument("--max-subtasks", type=int, default=MAX_SUBTASKS)
     args = p.parse_args(argv)
 
     log = _logger()
@@ -247,6 +295,11 @@ def main(argv: list[str] | None = None) -> int:
             summary = run_multi_agent(client, ticks=args.ticks, tick_seconds=args.tick_seconds, log=log)
             ok = summary["conservation"] and not summary["errors"]
             return 0 if ok else 1
+        if args.scenario == "supervisor":
+            result = run_supervisor_scenario(
+                client, goal=args.goal, max_subtasks=args.max_subtasks, log=log)
+            workers_ok = all(not worker["error"] for worker in result.worker_results)
+            return 0 if result.error is None and workers_ok else 1
         log.error("scenario %s not yet implemented", args.scenario)
         return 2
 
