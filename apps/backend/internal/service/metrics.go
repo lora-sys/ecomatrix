@@ -145,9 +145,9 @@ const HistoryCapacity = 120 // ~ 2 minutes at 1s cadence
 
 // historyMu guards the history ring. Sample cadence is 1s.
 var (
-	historyMu  sync.Mutex
-	history    = make([]HistorySample, 0, HistoryCapacity)
-	historyCh  = make(chan struct{}, 1)
+	historyMu sync.Mutex
+	history   = make([]HistorySample, 0, HistoryCapacity)
+	historyCh = make(chan struct{}, 1)
 )
 
 // History returns a copy of the ring buffer in chronological order (oldest

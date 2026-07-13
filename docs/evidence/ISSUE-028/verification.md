@@ -114,5 +114,44 @@ $ gh repo list lora-sys ... | select(name == "ecomatrix")
 (no matching repository)
 ```
 
-Local commit is possible, but push, PR creation, and remote CI are unavailable
-until a Git remote is explicitly configured.
+At this checkpoint, push, PR creation, and remote CI were unavailable. The
+user later authorized repository creation; the resolution is recorded below.
+
+## Remote CI Recovery
+
+The user authorized creating a remote after the initial local handoff.
+
+```text
+Repository: https://github.com/lora-sys/ecomatrix (private)
+Issue:      https://github.com/lora-sys/ecomatrix/issues/1
+Draft PR:   https://github.com/lora-sys/ecomatrix/pull/2
+First run:  https://github.com/lora-sys/ecomatrix/actions/runs/29218912703
+```
+
+First-run result:
+
+```text
+agent (Python pytest)             pass
+backend (Go -race)               fail: six files reported by gofmt -l
+frontend (Next.js + Playwright)  fail: next lint requested interactive setup
+e2e (Playwright)                 skipped because dependencies failed
+```
+
+Recovery verification before push:
+
+```text
+$ cd apps/backend
+$ go vet ./... && test -z "$(gofmt -l .)" && go test -race -count=1 ./...
+all packages passed
+
+$ cd apps/frontend
+$ npm run lint
+✔ No ESLint warnings or errors
+
+$ npx tsc --noEmit
+exit: 0
+
+$ npm run build
+✓ Compiled successfully
+✓ Generating static pages (3/3)
+```
