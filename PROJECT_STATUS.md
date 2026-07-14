@@ -57,7 +57,7 @@
 | -- | ----- | ----- | ------ | ----- |
 | ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 MERGEABLE on `lora-sys/ecomatrix`; CI run 29247531327 green. |
 | ISS-029 | Supervisor task stream in the dashboard | agent | Done | PR #3 green on run `29249552264` (agent 16s, backend 37s, frontend 1m13s, e2e 2m26s). |
-| ISS-030 | Supervisor detail page + per-agent participation history | frontend/backend | Done (local) | Branch `feature/ISSUE-030-supervisor-detail`; local gates green (Go race, 105 Python tests, Playwright 18 passed/2 skipped); PR pending push. Evidence in `docs/evidence/ISSUE-030/`. |
+| ISS-030 | Supervisor detail page + per-agent participation history | frontend/backend | Done | PR #4 MERGEABLE on run `29301538375` (backend 54s, agent 15s, frontend 62s, e2e 156s, CodeRabbit pass). Evidence in `docs/evidence/ISSUE-030/`. |
 
 ## Blockers
 - (none)
