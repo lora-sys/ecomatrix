@@ -40,6 +40,13 @@ func runSupervisorTests(m *testing.M) (code int) {
 		fmt.Fprintln(os.Stderr, "open supervisor test database:", err)
 		return 1
 	}
+	// Cap the schema-migration connection pool too. The default is unlimited,
+	// which means the 50-race trade_test parallel to this package can starve
+	// this one of headroom on CI's `max_connections=100` Postgres.
+	baseSQL, err := baseDB.DB()
+	if err == nil {
+		baseSQL.SetMaxOpenConns(2)
+	}
 	supervisorSchemaName = fmt.Sprintf("ecomatrix_http_test_%d", os.Getpid())
 	if err := baseDB.Exec("CREATE SCHEMA " + supervisorSchemaName).Error; err != nil {
 		fmt.Fprintln(os.Stderr, "create supervisor test schema:", err)
@@ -67,6 +74,11 @@ func runSupervisorTests(m *testing.M) (code int) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "open isolated supervisor test schema:", err)
 		return 1
+	}
+	// Schema-migration pool is only used once; cap it the same way.
+	testSQL, err := testDB.DB()
+	if err == nil {
+		testSQL.SetMaxOpenConns(2)
 	}
 	if err := repo.Migrate(testDB); err != nil {
 		fmt.Fprintln(os.Stderr, "migrate isolated supervisor test schema:", err)
