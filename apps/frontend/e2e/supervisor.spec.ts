@@ -32,8 +32,10 @@ test.describe("EcoMatrix supervisor detail (ISS-030)", () => {
     await timed(page, "goto-dashboard", async () => {
       await page.goto("/");
     });
-    // The supervisor log region must be present (server-rendered).
-    await expect(page.locator('[aria-label="supervisor task log"]')).toBeVisible();
+    // The supervisor panel title is always rendered. We probe it instead of
+    // the inner aria-live region because that region only mounts once at
+    // least one run is present.
+    await expect(page.getByText("Supervisor 任务日志")).toBeVisible();
     // Look for any supervisor detail link. If none exist (no runs yet), we
     // skip the navigation assertion and use the fallback below.
     const linkCount = await page.locator("[data-supervisor-link]").count();
