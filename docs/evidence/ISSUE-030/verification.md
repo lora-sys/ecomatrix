@@ -69,3 +69,4 @@ Screenshots (desktop + mobile) saved at:
 
 - Branch: `feature/ISSUE-030-supervisor-detail`
 - PR: https://github.com/lora-sys/ecomatrix/pull/4 (run `29300898334`)
+
