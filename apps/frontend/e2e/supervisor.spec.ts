@@ -113,7 +113,7 @@ test.describe("EcoMatrix supervisor detail (ISS-030)", () => {
       await page.goto("/agents/agent_miner_01");
     });
     await expect(page.getByRole("heading", { name: "agent_miner_01" })).toBeVisible();
-    await expect(page.getByText(/近期 Supervisor 运行/)).toBeVisible();
+    await expect(page.getByText(/近期 Supervisor 运行/).first()).toBeVisible();
     await page.screenshot({ path: `test-results/agent-supervisor-history-${testInfo.project.name}.png`, fullPage: true });
     expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
   });
