@@ -79,6 +79,13 @@ func supervisorTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	db, err := gorm.Open(postgres.Open(supervisorTestDSN), &gorm.Config{})
 	require.NoError(t, err)
+	// Cap this package's pool at 1 connection: the supervisor router tests
+	// are independent and don't need concurrency. Sharing a single conn
+	// also keeps the package from saturating CI's default Postgres
+	// `max_connections=100` when the broader test suite runs in parallel.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
 	require.NoError(t, db.Exec("TRUNCATE transactions, social_feeds, agents, conversations, llm_cache, agent_secrets, supervisor_runs RESTART IDENTITY CASCADE").Error)
 	return db
 }
