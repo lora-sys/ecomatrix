@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -20,84 +19,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// We isolate this test binary into its own schema so the http test pool
-// doesn't compete with repo/ and service/ packages' tests on the shared
-// `ecomatrix_test` database during `go test -race ./...`.
-var supervisorTestDSN string
-var supervisorSchemaName string
-
-func TestMain(m *testing.M) {
-	os.Exit(runSupervisorTests(m))
-}
-
-func runSupervisorTests(m *testing.M) (code int) {
-	baseDSN := os.Getenv("ECOMATRIX_TEST_DSN")
-	if baseDSN == "" {
-		baseDSN = "postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable"
-	}
-	baseDB, err := gorm.Open(postgres.Open(baseDSN), &gorm.Config{})
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "open supervisor test database:", err)
-		return 1
-	}
-	// Cap the schema-migration connection pool too. The default is unlimited,
-	// which means the 50-race trade_test parallel to this package can starve
-	// this one of headroom on CI's `max_connections=100` Postgres.
-	baseSQL, err := baseDB.DB()
-	if err == nil {
-		baseSQL.SetMaxOpenConns(2)
-	}
-	supervisorSchemaName = fmt.Sprintf("ecomatrix_http_test_%d", os.Getpid())
-	if err := baseDB.Exec("CREATE SCHEMA " + supervisorSchemaName).Error; err != nil {
-		fmt.Fprintln(os.Stderr, "create supervisor test schema:", err)
-		return 1
-	}
-	defer func() {
-		if err := baseDB.Exec("DROP SCHEMA " + supervisorSchemaName + " CASCADE").Error; err != nil {
-			fmt.Fprintln(os.Stderr, "drop supervisor test schema:", err)
-			if code == 0 {
-				code = 1
-			}
-		}
-	}()
-	parsed, err := url.Parse(baseDSN)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "parse supervisor test DSN:", err)
-		return 1
-	}
-	q := parsed.Query()
-	q.Set("search_path", supervisorSchemaName)
-	parsed.RawQuery = q.Encode()
-	supervisorTestDSN = parsed.String()
-
-	testDB, err := gorm.Open(postgres.Open(supervisorTestDSN), &gorm.Config{})
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "open isolated supervisor test schema:", err)
-		return 1
-	}
-	// Schema-migration pool is only used once; cap it the same way.
-	testSQL, err := testDB.DB()
-	if err == nil {
-		testSQL.SetMaxOpenConns(2)
-	}
-	if err := repo.Migrate(testDB); err != nil {
-		fmt.Fprintln(os.Stderr, "migrate isolated supervisor test schema:", err)
-		return 1
-	}
-	return m.Run()
-}
-
+// supervisorTestDB opens one gorm connection per test and caps the pool to
+// a single connection. Sharing a single connection serializes this package's
+// tests against the global `max_connections=100` Postgres that CI provides
+// (so this suite doesn't compound the 50-race trade_test's footprint).
+// All four packages hit the same `ecomatrix_test` schema; the wipe runs
+// first inside each test, just like the rest of the suite.
 func supervisorTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(postgres.Open(supervisorTestDSN), &gorm.Config{})
+	dsn := os.Getenv("ECOMATRIX_TEST_DSN")
+	if dsn == "" {
+		dsn = "postgres://repotwin:repotwin@localhost:5432/ecomatrix_test?sslmode=disable"
+	}
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	require.NoError(t, err)
-	// Cap this package's pool at 1 connection: the supervisor router tests
-	// are independent and don't need concurrency. Sharing a single conn
-	// also keeps the package from saturating CI's default Postgres
-	// `max_connections=100` when the broader test suite runs in parallel.
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
 	sqlDB.SetMaxOpenConns(1)
+	require.NoError(t, repo.Migrate(db))
 	require.NoError(t, db.Exec("TRUNCATE transactions, social_feeds, agents, conversations, llm_cache, agent_secrets, supervisor_runs RESTART IDENTITY CASCADE").Error)
 	return db
 }
