@@ -5,8 +5,9 @@ package domain
 import "errors"
 
 var (
-	ErrAgentNotFound     = errors.New("agent not found")
-	ErrInsufficientFunds = errors.New("insufficient funds")
-	ErrSelfTrade         = errors.New("self-trade is not allowed")
-	ErrDuplicateReplay   = errors.New("duplicate msg_id, returning original receipt")
+	ErrAgentNotFound         = errors.New("agent not found")
+	ErrInsufficientFunds     = errors.New("insufficient funds")
+	ErrSelfTrade             = errors.New("self-trade is not allowed")
+	ErrDuplicateReplay       = errors.New("duplicate msg_id, returning original receipt")
+	ErrSupervisorRunNotFound = errors.New("supervisor run not found")
 )

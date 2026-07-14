@@ -31,13 +31,15 @@ func NewMetricsService(db *gorm.DB, agents *repo.AgentRepo, txs *repo.TxRepo) *M
 // Snapshot is the dashboard-facing aggregate. Stable JSON shape; do not
 // rename fields without bumping the A2A-style version.
 type Snapshot struct {
-	AgentCount    int            `json:"agent_count"`
-	TotalGold     int64          `json:"total_gold"`
-	JobsBreakdown map[string]int `json:"jobs_breakdown"`
-	RecentQPS     float64        `json:"recent_qps"`
-	WSConnections int            `json:"ws_connections"`
-	LastTradeAt   string         `json:"last_trade_at,omitempty"`
-	GeneratedAt   string         `json:"generated_at"`
+	AgentCount          int            `json:"agent_count"`
+	TotalGold           int64          `json:"total_gold"`
+	JobsBreakdown       map[string]int `json:"jobs_breakdown"`
+	RecentQPS           float64        `json:"recent_qps"`
+	WSConnections       int            `json:"ws_connections"`
+	LastTradeAt         string         `json:"last_trade_at,omitempty"`
+	SupervisorRunsCount int64          `json:"supervisor_runs_count"`
+	SupervisorLastRunAt string         `json:"supervisor_last_run_at,omitempty"`
+	GeneratedAt         string         `json:"generated_at"`
 }
 
 // NoteTrade increments the rolling counter and updates last-trade timestamp.
@@ -128,6 +130,21 @@ func (m *MetricsService) Collect(ctx context.Context, wsConns int) (Snapshot, er
 	since := time.Now().Add(-60 * time.Second)
 	tc, _ := m.TradeCountInWindow(ctx, since)
 	recordHistorySample(snap, tc)
+
+	// Cheap supervisor summary: count of runs and the most recent finished-at.
+	var runCount int64
+	var lastRunAt *time.Time
+	row := m.db.WithContext(ctx).
+		Raw(`SELECT COUNT(*) AS c, MAX(finished_at) AS last_at FROM supervisor_runs`).
+		Row()
+	if row != nil {
+		_ = row.Scan(&runCount, &lastRunAt)
+	}
+	snap.SupervisorRunsCount = runCount
+	if lastRunAt != nil {
+		snap.SupervisorLastRunAt = lastRunAt.UTC().Format(time.RFC3339Nano)
+	}
+
 	return snap, nil
 }
 

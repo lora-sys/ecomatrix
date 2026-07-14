@@ -18,6 +18,8 @@ export interface MetricsSnapshot {
   recent_qps: number;
   ws_connections: number;
   last_trade_at?: string;
+  supervisor_runs_count?: number;
+  supervisor_last_run_at?: string;
   generated_at: string;
 }
 

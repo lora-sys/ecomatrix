@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useStore } from "../hooks/store";
+import Link from "next/link";
 import { SupervisorRun } from "../lib/types";
 
 interface SupervisorLogProps {
@@ -57,14 +58,27 @@ export function SupervisorLog({ initialRuns = [] }: SupervisorLogProps) {
     >
       <div className="rounded border border-hairline/60 bg-panel/40 p-3">
         <div className="flex items-baseline justify-between">
-          <span className="truncate pr-2 text-ink">
-            {latest.goal || "(无目标)"}
-          </span>
-          <span
-            className={failed ? "text-accent-rose" : "text-accent-emerald"}
-            data-status={failed ? "failed" : "ok"}
+          <Link
+            href={`/supervisor/${latest.id ?? 0}`}
+            className="truncate pr-2 text-ink hover:text-accent-cyan"
+            data-supervisor-link
           >
-            {failed ? "FAILED" : "OK"}
+            {latest.goal || "(无目标)"}
+          </Link>
+          <span className="flex items-center gap-2">
+            <span
+              className={failed ? "text-accent-rose" : "text-accent-emerald"}
+              data-status={failed ? "failed" : "ok"}
+            >
+              {failed ? "FAILED" : "OK"}
+            </span>
+            <Link
+              href={`/supervisor/${latest.id ?? 0}`}
+              className="font-mono text-[10px] text-accent-cyan hover:underline"
+              data-supervisor-link
+            >
+              详情 #{latest.id ?? "?"}
+            </Link>
           </span>
         </div>
         <div className="mt-1 flex items-baseline justify-between text-ink-dim">
@@ -92,17 +106,32 @@ export function SupervisorLog({ initialRuns = [] }: SupervisorLogProps) {
           </ul>
         )}
       </div>
-      {runs.length > 1 && (
-        <ul className="space-y-1 text-ink-dim">
-          {runs.slice(1).map((r) => (
-            <li key={r.id} className="flex items-baseline justify-between">
-              <span className="truncate pr-2">{r.goal}</span>
-              <span>
-                #{r.id} · {r.duration_ms ?? 0} ms
-              </span>
-            </li>
-          ))}
-        </ul>
+      {runs.length > 0 && (
+        <div className="space-y-1 text-ink-dim">
+          <div className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.18em]">
+            <span>近期运行</span>
+            <span className="text-accent-cyan">详情 →</span>
+          </div>
+          <ul className="space-y-1">
+            {runs.slice(1).map((r) => (
+              <li
+                key={r.id}
+                className="flex items-baseline justify-between rounded border border-hairline/40 px-2 py-1 hover:border-accent-cyan/60"
+              >
+                <Link
+                  href={`/supervisor/${r.id}`}
+                  className="flex-1 truncate pr-2 font-mono text-xs hover:text-accent-cyan"
+                  data-supervisor-link
+                >
+                  #{r.id} · {r.goal}
+                </Link>
+                <span className="font-mono text-xs">
+                  {r.duration_ms ?? 0} ms
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

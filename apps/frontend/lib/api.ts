@@ -1,4 +1,4 @@
-import { Agent, ConversationEntry, LLMCacheStats, MetricsHistory, MetricsSnapshot, Transaction } from "./types";
+import { Agent, ConversationEntry, LLMCacheStats, MetricsHistory, MetricsSnapshot, SupervisorRun, Transaction } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
@@ -83,6 +83,25 @@ export async function fetchSupervisorRuns(limit = 6): Promise<SupervisorRunPaylo
     cache: "no-store",
   });
   if (!r.ok) throw new Error(`supervisor: ${r.status}`);
+  const d = (await r.json()) as { runs: SupervisorRunPayload[] };
+  return d.runs ?? [];
+}
+
+export async function fetchSupervisorRun(id: number): Promise<SupervisorRunPayload> {
+  const r = await fetch(`${BASE}/v1/supervisor/runs/${id}`, { cache: "no-store" });
+  if (!r.ok) throw new Error(`supervisor run: ${r.status}`);
+  return (await r.json()) as SupervisorRunPayload;
+}
+
+export async function fetchAgentSupervisorRuns(
+  agentId: string,
+  limit = 6,
+): Promise<SupervisorRunPayload[]> {
+  const r = await fetch(
+    `${BASE}/v1/agents/by-string-id/${agentId}/supervisor-runs?limit=${limit}`,
+    { cache: "no-store" },
+  );
+  if (!r.ok) throw new Error(`agent supervisor: ${r.status}`);
   const d = (await r.json()) as { runs: SupervisorRunPayload[] };
   return d.runs ?? [];
 }

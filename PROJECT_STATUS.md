@@ -57,6 +57,7 @@
 | -- | ----- | ----- | ------ | ----- |
 | ISS-028 | Bounded supervisor workflow + CLI scenario | agent | Done | PR #2 MERGEABLE on `lora-sys/ecomatrix`; CI run 29247531327 green. |
 | ISS-029 | Supervisor task stream in the dashboard | agent | Done | PR #3 green on run `29249552264` (agent 16s, backend 37s, frontend 1m13s, e2e 2m26s). |
+| ISS-030 | Supervisor detail page + per-agent participation history | frontend/backend | Done (local) | Branch `feature/ISSUE-030-supervisor-detail`; local gates green (Go race, 105 Python tests, Playwright 18 passed/2 skipped); PR pending push. Evidence in `docs/evidence/ISSUE-030/`. |
 
 ## Blockers
 - (none)
@@ -66,6 +67,7 @@
 
 ## Recent Changes
 - 2026-07-13 — ISS-029 implementation complete locally: backend persistence, Python client POST, dashboard panel, and e2e assertion landed; local gates green and PR opened.
+- 2026-07-14 — ISS-030 implementation complete locally: `ByID`/`ByAgent` repo helpers, two new HTTP endpoints, supervisor fields on `/v1/metrics`, `/supervisor/[id]` SSR page, agent-history section, two new Playwright cases (desktop+mobile green); evidence in `docs/evidence/ISSUE-030/`.
 - 2026-07-13 — PR run `29247531327` returned all four required CI jobs green; ISS-028 transitions to Done pending PR review.
 - 2026-07-13 — Created private `lora-sys/ecomatrix`, Issue #1, and Draft PR #2; first CI run exposed baseline gofmt and interactive ESLint failures.
 - 2026-07-13 — ISS-028 prepared as a local feature commit; authenticated GitHub account has no matching `ecomatrix` repository, so the board remains in Review.

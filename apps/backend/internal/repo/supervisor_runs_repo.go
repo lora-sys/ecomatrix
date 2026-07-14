@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ecomatrix/backend/internal/domain"
@@ -101,4 +103,61 @@ func (r *SupervisorRunsRepo) Recent(ctx context.Context, limit int) ([]domain.Su
 		out = append(out, run)
 	}
 	return out, nil
+}
+
+func (r *SupervisorRunsRepo) ByID(ctx context.Context, id int64) (domain.SupervisorRun, error) {
+	var row SupervisorRunModel
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.SupervisorRun{}, domain.ErrSupervisorRunNotFound
+		}
+		return domain.SupervisorRun{}, err
+	}
+	return toSupervisorRun(row), nil
+}
+
+// ByAgent returns the most recent runs that mention the given agent id in
+// their worker_results JSONB column. Order is newest first.
+func (r *SupervisorRunsRepo) ByAgent(ctx context.Context, agentID string, limit int) ([]domain.SupervisorRun, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	var rows []SupervisorRunModel
+	if err := r.db.WithContext(ctx).
+		Where("worker_results @> ?", fmt.Sprintf(`[{"agent_id": "%s"}]`, agentID)).
+		Order("id DESC").
+		Limit(limit).
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]domain.SupervisorRun, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, toSupervisorRun(row))
+	}
+	return out, nil
+}
+
+func toSupervisorRun(row SupervisorRunModel) domain.SupervisorRun {
+	run := domain.SupervisorRun{
+		ID:           row.ID,
+		Goal:         row.Goal,
+		Status:       row.Status,
+		Error:        row.Error,
+		FinalSummary: row.FinalSummary,
+		TokensUsed:   row.TokensUsed,
+		TokensBudget: row.TokensBudget,
+		StartedAt:    row.StartedAt,
+		FinishedAt:   row.FinishedAt,
+		DurationMs:   row.DurationMs,
+	}
+	if len(row.WarningsJSON) > 0 {
+		_ = json.Unmarshal(row.WarningsJSON, &run.Warnings)
+	}
+	if len(row.SubtasksJSON) > 0 {
+		_ = json.Unmarshal(row.SubtasksJSON, &run.Subtasks)
+	}
+	if len(row.WorkersJSON) > 0 {
+		_ = json.Unmarshal(row.WorkersJSON, &run.WorkerResults)
+	}
+	return run
 }

@@ -77,6 +77,8 @@ func (s *Server) Register() {
 	v1.Get("/agents/by-string-id/:sid/traces", s.getAgentTraces)
 	v1.Get("/supervisor/runs", s.listSupervisorRuns)
 	v1.Post("/supervisor/runs", s.postSupervisorRun)
+	v1.Get("/supervisor/runs/:id", s.getSupervisorRun)
+	v1.Get("/agents/by-string-id/:sid/supervisor-runs", s.getAgentSupervisorRuns)
 }
 
 // ---------- middleware ----------
@@ -801,4 +803,68 @@ func (s *Server) postSupervisorRun(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(toSupervisorRunPayload(saved))
+}
+
+// ---------- ISS-030: supervisor run detail + per-agent participation ----------
+
+func (s *Server) getSupervisorRun(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil || id <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "id must be a positive integer"},
+		})
+	}
+	run, err := s.Supervisor.ByID(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, domain.ErrSupervisorRunNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "supervisor run not found"},
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	return c.JSON(toSupervisorRunPayload(run))
+}
+
+func (s *Server) getAgentSupervisorRuns(c *fiber.Ctx) error {
+	if s.Supervisor == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": "supervisor repo not configured"},
+		})
+	}
+	sid := c.Params("sid")
+	if sid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INVALID_ENVELOPE", "message": "sid is required"},
+		})
+	}
+	if _, err := s.Agents.ByStringID(c.Context(), sid); err != nil {
+		if errors.Is(err, domain.ErrAgentNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "agent not found"},
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	runs, err := s.Supervisor.ByAgent(c.Context(), sid, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fiber.Map{"code": "INTERNAL", "message": err.Error()},
+		})
+	}
+	out := make([]supervisorRunPayload, 0, len(runs))
+	for _, r := range runs {
+		out = append(out, toSupervisorRunPayload(r))
+	}
+	return c.JSON(fiber.Map{"runs": out})
 }
