@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { display, body, mono } from "./fonts";
+import { AmbientBackground } from "../components/ambient-bg";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${display.variable} ${body.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-canvas text-ink antialiased">
+      <body className="relative min-h-screen bg-canvas text-ink antialiased">
+        <AmbientBackground />
         {children}
       </body>
     </html>

@@ -91,8 +91,12 @@ test.describe("EcoMatrix supervisor detail (ISS-030)", () => {
       await page.locator(`a[href="/supervisor/${seeded.id}"]`).first().click();
     });
     await expect(page).toHaveURL(new RegExp(`/supervisor/${seeded.id}$`));
-    await expect(page.getByText(/Supervisor 运行 #/)).toBeVisible();
-    await expect(page.getByText(seeded.goal)).toBeVisible();
+    await expect(page.getByText(/RUN #/)).toBeVisible();
+    // Goal text appears both as the masthead subhead and inside the detail
+    // card, so we use a substring match. Some seeded runs may repeat goals
+    // across consecutive runs (timestamp is the discriminator); .first()
+    // sidesteps the strict-mode collision.
+    await expect(page.getByText(seeded.goal).first()).toBeVisible();
     await page.screenshot({ path: `test-results/supervisor-detail-${testInfo.project.name}.png`, fullPage: true });
     expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
   });

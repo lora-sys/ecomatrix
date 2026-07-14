@@ -6,6 +6,10 @@
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --grad-cyan: #22D3EE;
+  --grad-violet: #7C5CFF;
+  --grad-gold: #F5C044;
+  --grad-rose: #F43F5E;
 }
 
 html, body { background: #070A12; color: #E6EDF7; }
@@ -27,4 +31,86 @@ body { font-family: var(--font-body); font-feature-settings: "ss01", "cv11"; }
   .ring-violet-glow { box-shadow: 0 0 0 1px rgba(124,92,255,0.35), 0 0 24px rgba(124,92,255,0.18); }
   .ring-rose-glow { box-shadow: 0 0 0 1px rgba(244,63,94,0.35), 0 0 24px rgba(244,63,94,0.18); }
   .grad-wealth { background-image: linear-gradient(90deg, #22D3EE 0%, #F5C044 50%, #F43F5E 100%); }
+  .grad-text-rainbow {
+    background: linear-gradient(90deg,#22D3EE 0%, #7C5CFF 30%, #F5C044 60%, #F43F5E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .grad-text-cyan-violet {
+    background: linear-gradient(120deg,#7DD3FC 0%, #22D3EE 30%, #7C5CFF 75%, #C084FC 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ISS-FRONTEND: ambient scanline + film-grain layer (placed once in layout.tsx). */
+.ecomatrix-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.65 0 0 0 0 0.78 0 0 0 0 0.95 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.ecomatrix-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(125, 211, 252, 0.06) 0px,
+    rgba(125, 211, 252, 0.06) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+@keyframes ecomatrix-glow-drift {
+  0%   { transform: translate3d(-8%, -4%, 0) scale(1);   }
+  50%  { transform: translate3d(10%, 6%, 0)  scale(1.15); }
+  100% { transform: translate3d(-8%, -4%, 0) scale(1);   }
+}
+.ecomatrix-blob {
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: ecomatrix-glow-drift 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ISS-FRONTEND: ticker marquee. */
+@keyframes ecomatrix-ticker {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.ecomatrix-marquee-track {
+  animation: ecomatrix-ticker 48s linear infinite;
+  will-change: transform;
+}
+.ecomatrix-marquee-track:hover { animation-play-state: paused; }
+
+/* ISS-FRONTEND: number-roll plate. */
+.ecomatrix-numeral {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum","ss01";
+}
+
+/* ISS-FRONTEND: hairline gradient frame around big cards. */
+.ecomatrix-frame {
+  position: relative;
+  isolation: isolate;
+}
+.ecomatrix-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34,211,238,0.65), rgba(124,92,255,0.40) 40%, rgba(245,192,68,0.45) 75%, rgba(244,63,94,0.55));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes ecomatrix-wave {
+  0%   { transform: translateX(0)    scaleX(0.6); }
+  50%  { transform: translateX(200%) scaleX(2); }
+  100% { transform: translateX(0)    scaleX(0.6); }
 }

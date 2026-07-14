@@ -10,6 +10,32 @@ A fully autonomous multi-agent sandbox. AI agents with distinct jobs, balances, 
 | 2     | Brain — Python LangGraph agent         | ✅ Shipped (`docs/evidence/PHASE-2/`) |
 | 3     | God's Eye — Next.js dashboard         | ✅ Shipped (`docs/evidence/PHASE-3/`) |
 
+## Dashboard Demo (ISS-FRONTEND)
+
+Latest creative pass on the dashboard. Hit with the `$frontend-creative` skill:
+extended type, ambient drift + grain + scanline, hairline gradient frames,
+live ticker ribbon, transmissal hero on every detail page.
+
+|  | Before | After |
+| --- | --- | --- |
+| Dashboard (desktop) | ![Dashboard before](docs/design/ISSUE-FRONTEND/before/dashboard-desktop.png) | ![Dashboard after](docs/design/ISSUE-FRONTEND/after/dashboard-desktop.png) |
+| Dashboard (mobile)  | ![Dashboard before](docs/design/ISSUE-FRONTEND/before/dashboard-mobile.png)  | ![Dashboard after](docs/design/ISSUE-FRONTEND/after/dashboard-mobile.png)  |
+| Agent dossier (desktop) | ![Agent before](docs/design/ISSUE-FRONTEND/before/agents-desktop.png) | ![Agent after](docs/design/ISSUE-FRONTEND/after/agents-desktop.png) |
+| Agent dossier (mobile)  | ![Agent before](docs/design/ISSUE-FRONTEND/before/agents-mobile.png)  | ![Agent after](docs/design/ISSUE-FRONTEND/after/agents-mobile.png)  |
+| Supervisor run (desktop) | ![Supervisor before](docs/design/ISSUE-FRONTEND/before/supervisor-desktop.png) | ![Supervisor after](docs/design/ISSUE-FRONTEND/after/supervisor-desktop.png) |
+| Supervisor run (mobile)  | ![Supervisor before](docs/design/ISSUE-FRONTEND/before/supervisor-mobile.png)  | ![Supervisor after](docs/design/ISSUE-FRONTEND/after/supervisor-mobile.png)  |
+
+What changed (cf. `docs/design/ISSUE-FRONTEND/brief.md`):
+
+- **Ambient layer** (`components/ambient-bg.tsx`). Three drifting radial blobs, scanline rasterizer, SVG film grain — placed once in the root layout, fixed to the viewport.
+- **Masthead** (`components/masthead.tsx`). Layered kicker + gradient display headline (`gradient-text-cyan-violet` / `gradient-text-rainbow`) + secondary subhead + glyph. Drives every page hero.
+- **Live ticker ribbon** (`components/ticker-ribbon.tsx`). Marquee of live agents, GOLD reserve, QPS, WS, jobs breakdown, last-tx, supervisor runs. Streams animations pause on hover.
+- **BigMetric** (`components/big-metric.tsx`). KPI tile replacement with hairline gradient frames, animated bottom strip, big tabular-numeral value, dual-tone delta hint.
+- **Dossier layout** on `/agents/[id]`. Three BigMetric tiles up top (BALANCE / VITALITY / CREDIT) so the dossier feels like a personnel file, then long-form panels below.
+- **Transmissal layout** on `/supervisor/[id]`. Run header with run-id gradient + lightning glyph, four telemetry tiles, then the full run trace underneath.
+
+Stack stays within Next.js + Tailwind + framer-motion (no GSAP, no R3F). All gates green locally: `npm run typecheck`, `npm run lint`, `npm run build`, full Playwright e2e (18 passed / 2 skipped across desktop + mobile).
+
 ## Project Completion
 
 This project is feature-complete against the PRD. See [PROJECT_COMPLETION.md](PROJECT_COMPLETION.md) for the closing record.

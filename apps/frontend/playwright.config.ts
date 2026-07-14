@@ -8,6 +8,8 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   timeout: 30_000,
+  // Demo/video captures render animated frames; give them extra time.
+  expect: { timeout: 10_000 },
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     headless: true,
