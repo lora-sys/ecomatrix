@@ -57,7 +57,7 @@ func openTestDBRepo(t *testing.T) *gorm.DB {
 
 func wipeRepo(t *testing.T, db *gorm.DB) {
 	t.Helper()
-	require.NoError(t, db.Exec("TRUNCATE transactions, social_feeds, agents, conversations, llm_cache, agent_secrets RESTART IDENTITY CASCADE").Error)
+	require.NoError(t, db.Exec("TRUNCATE transactions, social_feeds, agents, conversations, llm_cache, agent_secrets, supervisor_runs RESTART IDENTITY CASCADE").Error)
 	// Force the truncate to be visible to all subsequent transactions in this test
 	// by waiting for the row count to actually go to 0.
 	var count int64

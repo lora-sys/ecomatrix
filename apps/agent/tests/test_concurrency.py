@@ -4,6 +4,7 @@
 with sender isolation. No real backend required.
 """
 import os
+import random
 import time
 import threading
 import concurrent.futures
@@ -16,7 +17,11 @@ from ecomatrix.tools import execute_tool, ToolResult
 
 def test_50_concurrent_llm_calls_with_partial_failure():
     """50 concurrent LLM calls; 30% fail. None should crash."""
-    llm = MockLLMWithFailures(failure_rate=0.3, failure_kind=LLMRateLimitError)
+    # Seed the RNG so the strict 0.20-0.80 ratio assertion is stable across
+    # CI reruns (statistical bounds are tight on N=50).
+    llm = MockLLMWithFailures(
+        failure_rate=0.3, failure_kind=LLMRateLimitError, rng=random.Random(42)
+    )
     n = 50
     results = {"ok": 0, "error": 0}
     lock = threading.Lock()

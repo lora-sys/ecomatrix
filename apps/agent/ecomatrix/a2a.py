@@ -372,3 +372,52 @@ class A2AClient:
         if body.get("status") != "SETTLED":
             raise A2AError(Code.INTERNAL, f"unexpected response: {body}", http_status=r.status_code)
         return Receipt.from_dict(body["receipt"])
+
+    def post_supervisor_run(self, body: dict) -> dict:
+        r = self._client.post("/v1/supervisor/runs", json=body)
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"supervisor: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        return r.json()
+
+    def list_supervisor_runs(self, limit: int = 20) -> list[dict]:
+        r = self._client.get("/v1/supervisor/runs", params={"limit": limit})
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"supervisor: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        body = r.json()
+        return list(body.get("runs", []))
+
+    def fetch_supervisor_run(self, run_id: int) -> dict:
+        r = self._client.get(f"/v1/supervisor/runs/{run_id}")
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"supervisor run: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        return r.json()
+
+    def list_agent_supervisor_runs(self, agent_id: str, limit: int = 20) -> list[dict]:
+        r = self._client.get(
+            f"/v1/agents/by-string-id/{agent_id}/supervisor-runs",
+            params={"limit": limit},
+        )
+        if r.status_code >= 400:
+            raise A2AError(
+                Code.INTERNAL,
+                f"agent supervisor: {r.status_code} {r.text[:200]}",
+                retryable=False,
+                http_status=r.status_code,
+            )
+        body = r.json()
+        return list(body.get("runs", []))

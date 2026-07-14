@@ -35,18 +35,18 @@ func NewTracesRepo(db *gorm.DB) *TracesRepo {
 
 func (r *TracesRepo) Insert(ctx context.Context, t domain.Trace) (domain.Trace, error) {
 	row := TraceModel{
-		AgentID:   t.AgentID,
-		Kind:      t.Kind,
-		Content:   t.Content,
-		LatencyMS: t.LatencyMS,
-		TokensIn:  t.TokensIn,
-		TokensOut: t.TokensOut,
-		ToolName:  t.ToolName,
-		ToolInput: t.ToolInput,
+		AgentID:    t.AgentID,
+		Kind:       t.Kind,
+		Content:    t.Content,
+		LatencyMS:  t.LatencyMS,
+		TokensIn:   t.TokensIn,
+		TokensOut:  t.TokensOut,
+		ToolName:   t.ToolName,
+		ToolInput:  t.ToolInput,
 		ToolOutput: t.ToolOutput,
-		CostUSD:   t.CostUSD,
-		ErrorCode: t.ErrorCode,
-		ParentID:  t.ParentID,
+		CostUSD:    t.CostUSD,
+		ErrorCode:  t.ErrorCode,
+		ParentID:   t.ParentID,
 	}
 	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
 		return domain.Trace{}, err

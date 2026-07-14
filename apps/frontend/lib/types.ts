@@ -18,6 +18,8 @@ export interface MetricsSnapshot {
   recent_qps: number;
   ws_connections: number;
   last_trade_at?: string;
+  supervisor_runs_count?: number;
+  supervisor_last_run_at?: string;
   generated_at: string;
 }
 
@@ -35,11 +37,29 @@ export interface Transaction {
   CreatedAt: string;
 }
 
+export interface SupervisorRun {
+  id?: number;
+  goal: string;
+  status: string;
+  error: string;
+  warnings: string[];
+  subtasks: Array<Record<string, unknown>>;
+  worker_results: Array<Record<string, unknown>>;
+  final_summary: string;
+  tokens_used: number;
+  tokens_budget: number;
+  started_at: string;
+  finished_at?: string;
+  duration_ms: number;
+}
+
 export type StreamEvent =
   | { type: "trade.settled"; tx_id: string; from: string; to: string; amount: number }
   | { type: "trade.rejected"; msg_id: string; code: string; message?: string }
   | { type: "trade.idempotent_replay"; tx_id: string }
   | { type: "agent.heartbeat"; alive?: number }
+  | { type: "supervisor.run.started"; run: SupervisorRun }
+  | { type: "supervisor.run.finished"; run: SupervisorRun }
   | { type: string; [k: string]: unknown };
 
 export interface MetricsHistorySample {

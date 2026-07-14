@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { fetchAgent, fetchTransactions, fetchAgents, fetchLongTermMemory } from "../../../lib/api";
+import { fetchAgent, fetchTransactions, fetchAgents, fetchLongTermMemory, fetchAgentSupervisorRuns } from "../../../lib/api";
 import { notFound } from "next/navigation";
 import { GlowingCard } from "../../../components/glowing-card";
 import { AIThoughtTrace } from "../../../components/ai-thought-trace";
 import { TracingBeam } from "../../../components/tracing-beam";
 import { LiveProvider } from "../../../components/live-provider";
+import { AgentSupervisorHistory } from "../../../components/agent-supervisor-history";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +19,29 @@ export default async function AgentDetail({
   } catch {
     notFound();
   }
-  const [txs, allAgents, ltm] = await Promise.all([
+  const [txs, allAgents, ltm, supervisorRuns] = await Promise.all([
     fetchTransactions(100),
     fetchAgents(),
     fetchLongTermMemory(id).catch(() => ({ summary: "", facts: [] })),
+    fetchAgentSupervisorRuns(id, 6).catch(() => []),
   ]);
   const idToString = new Map(allAgents.map((a: any) => [a.ID, a.StringID]));
+  const supervisorHistory = (supervisorRuns ?? []).map((r) => ({
+    id: r.id,
+    goal: r.goal,
+    status: r.status,
+    error: r.error,
+    warnings: r.warnings,
+    subtasks: r.subtasks,
+    worker_results: r.worker_results,
+    final_summary: r.final_summary,
+    tokens_used: r.tokens_used,
+    tokens_budget: r.tokens_budget,
+    started_at: r.started_at,
+    finished_at: r.finished_at,
+    duration_ms: r.duration_ms,
+  }));
+
   const mine = txs.filter((t: any) => t.FromID === agent.ID || t.ToID === agent.ID).slice(0, 20);
 
   return (
@@ -106,6 +124,19 @@ export default async function AgentDetail({
                   }))}
                 />
               )}
+            </GlowingCard>
+          </div>
+        </section>
+        <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-6">
+            <GlowingCard
+              label="近期 Supervisor 运行 · Supervisor 调度历史"
+              tone="violet"
+            >
+              <AgentSupervisorHistory
+                agentId={agent.StringID}
+                initialRuns={supervisorHistory}
+              />
             </GlowingCard>
           </div>
         </section>
