@@ -162,3 +162,29 @@ def test_main_keeps_multi_dispatch(monkeypatch):
     )
 
     assert runner.main(["--scenario", "multi", "--ticks", "1"]) == 0
+
+
+def test_parse_error_handles_string_and_object_forms():
+    """GraphResult.error can be a serialized string or an A2AError-shaped
+    object. _parse_error must return (code, message) in both cases so the
+    runner can recognize INSUFFICIENT_FUNDS specifically."""
+    from ecomatrix.runner import _parse_error
+
+    none_code, none_msg = _parse_error(None)
+    assert none_code is None and none_msg is None
+
+    code, msg = _parse_error("trade: INSUFFICIENT_FUNDS: not enough gold")
+    assert code == "INSUFFICIENT_FUNDS"
+    assert "INSUFFICIENT_FUNDS" in msg
+
+    code, msg = _parse_error("parse: bad json")
+    assert code == "parse"
+    assert "bad json" in msg
+
+    class Obj:
+        code = type("C", (), {"value": "FORBIDDEN"})()
+        message = "denied"
+
+    code, msg = _parse_error(Obj())
+    assert code == "FORBIDDEN"
+    assert msg == "denied"

@@ -69,6 +69,43 @@ def _logger() -> logging.Logger:
     return logging.getLogger("ecomatrix.runner")
 
 
+
+
+_KNOWN_TRADE_CODES = ("INSUFFICIENT_FUNDS", "SELF_TRADE", "FORBIDDEN",
+                       "RATE_LIMITED", "INVALID_ENVELOPE")
+
+
+def _parse_error(err):
+    """Normalize GraphResult.error (which can be an LLMError-shape object or
+    a graph-emitted string like "trade: CODE: msg") into a `(code, message)`
+    tuple so the runner can recognize specific codes (e.g. to count
+    INSUFFICIENT_FUNDS as a soft rejection).
+    """
+    if err is None:
+        return None, None
+    if isinstance(err, str):
+        # Forms seen in `graphs/base.py`:
+        #   "trade: INSUFFICIENT_FUNDS: not enough gold"
+        #   "feed: FORBIDDEN: ..."
+        #   "parse: Expecting value"
+        #   "llm: RateLimitError: ..."
+        # The middle section is the meaningful code; the trailing portion is
+        # the human message.
+        parts = err.split(":", 2)
+        if len(parts) >= 3:
+            return parts[1].strip(), err.strip()
+        if len(parts) == 2:
+            # No explicit mid-code (e.g. "parse: bad json"). Treat the prefix
+            # as the category and the second segment as the message.
+            return parts[0].strip(), err.strip()
+        return "UNKNOWN", err.strip()
+    # Object path (kept for forward compatibility).
+    code = getattr(err, "code", None)
+    code_val = getattr(code, "value", code)
+    msg = getattr(err, "message", str(err))
+    return code_val, msg
+
+
 def _spawn(client: A2AClient, llm: Any, job_type: str, agent_id: str,
            ltm: LongTermMemory) -> tuple[Any, ShortTermMemory]:
     builder = GRAPH_BUILDERS[job_type]
@@ -121,11 +158,12 @@ def run_two_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
                 ltm.update(agent_id, append_fact=f"settled {result.receipt.tx_id}")
                 log.info("settled", extra={"role": role, "tx_id": result.receipt.tx_id})
             elif result.error is not None:
-                if result.error.code == Code.INSUFFICIENT_FUNDS:
+                _code, _msg = _parse_error(result.error)
+                if _code == Code.INSUFFICIENT_FUNDS.value if hasattr(Code.INSUFFICIENT_FUNDS, "value") else _code == Code.INSUFFICIENT_FUNDS:
                     rejected += 1
                 else:
-                    errors.append(f"{role}:{result.error.code.value}:{result.error.message}")
-                log.info("rejected", extra={"role": role, "code": result.error.code.value, "errmsg": result.error.message})
+                    errors.append(f"{role}:{_code}:{_msg}")
+                log.info("rejected", extra={"role": role, "code": _code, "errmsg": _msg})
             else:
                 mem.observe("skipped tick")
                 log.info("skipped", extra={"role": role})
@@ -221,12 +259,13 @@ def run_multi_agent(client: A2AClient, *, ticks: int, tick_seconds: float,
                     log.info("settled", extra={"role": job, "agent": agent_id,
                                                 "tx_id": result.receipt.tx_id})
                 elif result.error is not None:
-                    if result.error.code == Code.INSUFFICIENT_FUNDS:
+                    _code, _msg = _parse_error(result.error)
+                    if _code == (Code.INSUFFICIENT_FUNDS.value if hasattr(Code.INSUFFICIENT_FUNDS, "value") else Code.INSUFFICIENT_FUNDS):
                         rejected += 1
                     else:
-                        errors.append(f"{agent_id}:{result.error.code.value}:{result.error.message}")
+                        errors.append(f"{agent_id}:{_code}:{_msg}")
                     log.info("rejected", extra={"role": job, "agent": agent_id,
-                                                "code": result.error.code.value})
+                                                "code": _code})
                 else:
                     log.info("skipped", extra={"role": job, "agent": agent_id})
 
