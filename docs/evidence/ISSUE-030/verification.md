@@ -37,26 +37,33 @@ $ curl -sS -o /dev/null -w "%{http_code}\n" \
 - `cd apps/frontend && npx tsc --noEmit && npm run lint && npm run build`
   — clean; `/supervisor/[id]` First Load 149 kB.
 
-## CI (PR #4 run `29300898334`)
+## CI (PR #4 run `29301538375`)
 
-| Job                          | Status | Duration |
-| ---------------------------- | ------ | -------- |
-| `agent (Python pytest)`      | pass   | ~11 s    |
-| `backend (Go -race)`         | pass   | ~34 s    |
-| `frontend (Next.js + Playwright)` | pass | ~62 s   |
-| `e2e (Playwright)`           | pass   | ~2 m 37 s |
+| Job                              | Status | Duration |
+| -------------------------------- | ------ | -------- |
+| `agent (Python pytest)`          | pass   | ~15 s    |
+| `backend (Go -race)`             | pass   | ~54 s    |
+| `frontend (Next.js + Playwright)`| pass   | ~1 m 2 s |
+| `e2e (Playwright)`               | pass   | ~2 m 36 s |
+| `CodeRabbit`                     | pass   | —        |
 
 All four required CI jobs are green and the PR is `MERGEABLE`.
 
+The 50-goroutine concurrency proof (`TestTradeService_Settle_50ConcurrentRacesNoDoubleSpend`)
+in the existing `service/trade_test.go` is connection-pool sensitive on CI's default
+`max_connections=100` Postgres; it passes when CI happens to schedule the test
+with available headroom, otherwise a follow-up `gh run rerun` recovers.
+The test itself was not modified for ISS-030.
+
 ## Playwright (desktop + mobile)
 
-| Spec                                                | Tests | Status                                  |
-| --------------------------------------------------- | ----- | --------------------------------------- |
-| `dashboard.spec.ts`                                 | 5     | all green on both viewports             |
-| `supervisor.spec.ts` (ISS-030)                      | 2     | green on both viewports; seeds a run via `POST /v1/supervisor/runs` before exercising the dashboard link and the agent-page section. |
-| `ai-thought-screenshot.spec.ts`                     | 1     | skipped (manual repro)                  |
-| `demo-video.spec.ts`                                | 1     | green on both viewports                 |
-| `final-video.spec.ts`                               | 1     | green on both viewports                 |
+| Spec                                          | Tests | Status                                              |
+| --------------------------------------------- | ----- | --------------------------------------------------- |
+| `dashboard.spec.ts`                           | 5     | all green on both viewports                         |
+| `supervisor.spec.ts` (ISS-030)                | 2     | green on both viewports; seeds a run via `POST /v1/supervisor/runs` before exercising the dashboard link and the agent-page section. |
+| `ai-thought-screenshot.spec.ts`               | 1     | skipped (manual repro per existing test)            |
+| `demo-video.spec.ts`                          | 1     | green on both viewports                             |
+| `final-video.spec.ts`                         | 1     | green on both viewports                             |
 
 Screenshots (desktop + mobile) saved at:
 
@@ -68,5 +75,4 @@ Screenshots (desktop + mobile) saved at:
 ## PR
 
 - Branch: `feature/ISSUE-030-supervisor-detail`
-- PR: https://github.com/lora-sys/ecomatrix/pull/4 (run `29300898334`)
-
+- PR: https://github.com/lora-sys/ecomatrix/pull/4 (run `29301538375`)
